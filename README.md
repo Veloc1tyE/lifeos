@@ -1,6 +1,6 @@
 # LifeOS
 
-Personal Life Operating System for tracking commitments, health metrics, and maintaining coherence across 7 pillars.
+A personal operating system for maintaining coherence across health, work, training, relationships, and long-term commitments.
 
 **Version:** 2.0.0
 **Architecture:** 4-document system (SPEC / OPS / TACTICS / STATE)
@@ -149,6 +149,13 @@ Changes follow semantic versioning and are logged in `CHANGELOG.md`:
 - **OPS changes:** When infrastructure evolves
 - **TACTICS changes:** Frequent, low friction
 - **STATE changes:** Daily, facts only
+
+## Where To Go Next
+
+- Read `CLAUDE.md` to start a session
+- See `lifeos/LIFEOS_SPEC.md` for non-negotiable rules
+- Use `lifeos/LIFEOS_TACTICS.md` when something goes wrong
+- Check `lifeos/CHANGELOG.md` to understand system evolution
 
 ## License
 
