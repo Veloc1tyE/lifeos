@@ -81,7 +81,6 @@
       {"task": "Settle balance: TRAIN bar", "status": "done"},
       {"task": "Settle balance: Daily Press", "status": "done"},
       {"task": "Get electrolytes for long sessions", "status": "done"},
-      {"task": "Import dashboard-import-with-endurance.json", "status": "open"},
       {"task": "Schedule Arabic classes", "status": "open"},
       {"task": "TAQA follow-up (Qais)", "status": "open"},
       {"task": "Fill out WorkCover forms (My Mirror psych)", "status": "open"},
@@ -115,33 +114,24 @@
   },
 
   "handoff": {
-    "lastSession": "2026-01-14 evening — LifeOS v2.0 restructure",
+    "lastSession": "2026-01-14 night — LifeOS v2.0 complete + GitHub setup",
     "sessionSummary": [
-      "MAJOR RESTRUCTURE: Split CLAUDE.md into 4 documents (SPEC, OPS, TACTICS, STATE)",
-      "Added Friction Budget concept (0-5 scale, Maintenance Mode if ≥3)",
-      "Added Pillar 3 measurable cadence (2 meetings/week, 5 conversions/week)",
-      "Added global Shutdown Enforcement invariant",
-      "Added Pillar 7 Review Output Contract (3 required artifacts)",
-      "Added System Health meta-signal (COMPOUNDING/STABLE/FRAGILE)",
-      "Added Pre-mortem trigger (2 consecutive bad weeks → 15-min pre-mortem)",
-      "Added Structural Change versioning (rule evolution log)",
-      "Created LIFEOS_TACTICS.md with full daily/weekly protocols, identity guardrails, agent authority",
-      "Added Tactics Governance Rules (promotion/deletion rules to prevent bloat)",
-      "Added Frequency Tags ([DAILY], [WEEKLY], [WHEN FRAGILE], [EMERGENCY])",
-      "Added Index of Failure Modes (quick lookup table under stress)"
+      "COMPLETED: LifeOS v2.0 architecture restructure",
+      "COMPLETED: GitHub repo setup (private, version-controlled)",
+      "COMPLETED: README updated for v2.0, data files cleaned from tracking",
+      "Architecture now frozen — no structural changes for 4-8 weeks",
+      "Let tactics earn promotion through use (3+ times → SPEC)"
     ],
     "openLoops": [
       "Alex/investor confidentiality - told him to keep it quiet, monitor",
-      "Training: REST today, no evening session",
-      "Dashboard import pending: dashboard-import-with-endurance.json",
       "WorkCover forms (My Mirror psych) — not started",
       "RTW plan + case manager liaison — not started"
     ],
     "pendingActions": {
       "critical": ["Capital motion deep work", "Al Maryah Island sublet search"],
-      "backlog": ["Import endurance JSON", "Arabic classes", "TAQA follow-up", "WorkCover forms", "RTW plan", "Haircut", "Core values", "Sunday vert calc", "Weekly review prep"]
+      "backlog": ["Arabic classes", "TAQA follow-up", "WorkCover forms", "RTW plan", "Haircut", "Core values", "Sunday vert calc", "Weekly review prep"]
     },
-    "nextSessionContext": "Evening shutdown OR next morning. Check: (1) Capital motion progress, (2) Sublet search status, (3) Any backlog closures. Sunday: calculate elliptical vert for week, update dashboard.",
+    "nextSessionContext": "Next session: normal operations. Check critical3 progress, backlog closures. Sunday: calculate elliptical vert for week, weekly review.",
     "blockers": []
   }
 }

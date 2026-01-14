@@ -100,7 +100,7 @@ Running log of all LifeOS sessions. Each entry captures: time, trigger, assessme
 
 ### Notes for Morning
 - User wants gym + lactate intervals tomorrow
-- Go/no-go conditions logged in pending-notes.md
+- Go/no-go conditions logged in inbox.md
 - Monitor overnight recovery before deciding
 
 ### Shutdown

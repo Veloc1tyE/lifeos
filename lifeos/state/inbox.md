@@ -1,6 +1,6 @@
-# Pending Notes
+# Inbox
 
-Temporary notes for the current session. Cleared after addressed.
+Temporary notes and open loops for the current session. Cleared after addressed.
 
 **Last Updated:** 2026-01-14
 

@@ -29,7 +29,7 @@ Execute full weekly protocol:
    - Read lifeos/state/session-log.md (this week's entries)
    - Read lifeos/reviews/daily/* (this week)
    - Read latest dashboard export
-   - Read Journal.json (this week's entries)
+   - Read lifeos/integrations/dayone/data/journal.json (this week's entries)
 
 2. PROMISES AUDIT
    - List all commitments made this week
