@@ -1,0 +1,147 @@
+{
+  "week": 3,
+  "weekStart": "2026-01-12",
+  "timezone": "Asia/Dubai",
+  "lastUpdated": "2026-01-14T12:00:00+04:00",
+  "lastSessionId": "003",
+
+  "pillarStatus": {
+    "p1_health": {
+      "status": "YELLOW",
+      "signals": ["HRV slightly suppressed post-load (66 vs 70 baseline)"],
+      "lastAssessed": "2026-01-14"
+    },
+    "p2_training": {
+      "status": "BUILDING",
+      "minutesLogged": 245,
+      "sessionsCompleted": 1,
+      "enduranceScore": {
+        "current": 5628,
+        "weeklyAvg": 5628,
+        "target": "5800-6200",
+        "trajectory": "ON_TRACK"
+      },
+      "note": "Load trending up fast, intervals today",
+      "lastAssessed": "2026-01-14"
+    },
+    "p3_capital": {
+      "status": "SLIGHT_DRIFT",
+      "decisionMakerMeetings": 1,
+      "nextStepConversions": 1,
+      "weeklyMinimum": {"meetings": 2, "conversions": 5},
+      "note": "Deep work block on CRM + capital velocity today",
+      "lastAssessed": "2026-01-14"
+    },
+    "p4_learning": {
+      "status": "BUILDING",
+      "arabicDays": 1,
+      "physicsDays": 0,
+      "lastAssessed": "2026-01-14"
+    },
+    "p5_relationships": {
+      "status": "FRAGILE",
+      "coreTouched": 2,
+      "lastAssessed": "2026-01-14"
+    },
+    "p6_output": {
+      "status": "STRONG",
+      "shippedThisWeek": true,
+      "draftsInMotion": 1,
+      "lastAssessed": "2026-01-14"
+    },
+    "p7_integrity": {
+      "status": "INTACT",
+      "reviewsCompleted": 0,
+      "lastAssessed": "2026-01-14"
+    },
+    "systemHealth": {
+      "status": "STABLE",
+      "consecutiveMaintenanceWeeks": 0,
+      "premortemDue": false,
+      "lastAssessed": "2026-01-14"
+    }
+  },
+
+  "today": {
+    "date": "2026-01-14",
+    "dayState": "YELLOW",
+    "frictionScore": 2,
+    "frictionSignals": ["admin load (WorkCover, RTW)", "relocation context"],
+    "deepWork": {
+      "focus": "Capital motion: CRM hygiene + capital velocity plan",
+      "area": "bizdev",
+      "completed": false
+    },
+    "critical3": [
+      {"task": "Capital motion: CRM hygiene + velocity plan", "status": "pending"},
+      {"task": "Find Al Maryah Island sublet (until May)", "status": "pending"}
+    ],
+    "backlog": [
+      {"task": "Settle balance: TRAIN gym", "status": "done"},
+      {"task": "Settle balance: TRAIN bar", "status": "done"},
+      {"task": "Settle balance: Daily Press", "status": "done"},
+      {"task": "Get electrolytes for long sessions", "status": "done"},
+      {"task": "Import dashboard-import-with-endurance.json", "status": "open"},
+      {"task": "Schedule Arabic classes", "status": "open"},
+      {"task": "TAQA follow-up (Qais)", "status": "open"},
+      {"task": "Fill out WorkCover forms (My Mirror psych)", "status": "open"},
+      {"task": "Fill out RTW plan + liaise with case manager", "status": "open"},
+      {"task": "Haircut", "status": "open"},
+      {"task": "Write down core values", "status": "open"},
+      {"task": "Sunday vert calculation (elliptical)", "status": "open"},
+      {"task": "Weekly review prep", "status": "open"}
+    ]
+  },
+
+  "weeklyBacklog": [],
+
+  "biometrics": {
+    "rhr": [null, 63, 53, null, null, null, null],
+    "hrv": [null, 65, 66, null, null, null, null],
+    "sleepHours": [null, 8.49, 8.49, null, null, null, null],
+    "bodyBattery": [null, 64, 64, null, null, null, null]
+  },
+
+  "enduranceScoreHistory": {
+    "weeklyAverages": [
+      {"week": "Dec 18-24", "score": 4827},
+      {"week": "Dec 25-31", "score": 5225},
+      {"week": "Jan 1-7", "score": 5452},
+      {"week": "Jan 8-14", "score": 5628}
+    ],
+    "januaryTarget": {"min": 5800, "max": 6200},
+    "lastUpdated": "2026-01-14",
+    "note": "Manual entry - check Garmin app weekly"
+  },
+
+  "handoff": {
+    "lastSession": "2026-01-14 evening — LifeOS v2.0 restructure",
+    "sessionSummary": [
+      "MAJOR RESTRUCTURE: Split CLAUDE.md into 4 documents (SPEC, OPS, TACTICS, STATE)",
+      "Added Friction Budget concept (0-5 scale, Maintenance Mode if ≥3)",
+      "Added Pillar 3 measurable cadence (2 meetings/week, 5 conversions/week)",
+      "Added global Shutdown Enforcement invariant",
+      "Added Pillar 7 Review Output Contract (3 required artifacts)",
+      "Added System Health meta-signal (COMPOUNDING/STABLE/FRAGILE)",
+      "Added Pre-mortem trigger (2 consecutive bad weeks → 15-min pre-mortem)",
+      "Added Structural Change versioning (rule evolution log)",
+      "Created LIFEOS_TACTICS.md with full daily/weekly protocols, identity guardrails, agent authority",
+      "Added Tactics Governance Rules (promotion/deletion rules to prevent bloat)",
+      "Added Frequency Tags ([DAILY], [WEEKLY], [WHEN FRAGILE], [EMERGENCY])",
+      "Added Index of Failure Modes (quick lookup table under stress)"
+    ],
+    "openLoops": [
+      "Alex/investor confidentiality - told him to keep it quiet, monitor",
+      "Training: REST today, no evening session",
+      "Dashboard import pending: dashboard-import-with-endurance.json",
+      "WorkCover forms (My Mirror psych) — not started",
+      "RTW plan + case manager liaison — not started"
+    ],
+    "pendingActions": {
+      "critical": ["Capital motion deep work", "Al Maryah Island sublet search"],
+      "backlog": ["Import endurance JSON", "Arabic classes", "TAQA follow-up", "WorkCover forms", "RTW plan", "Haircut", "Core values", "Sunday vert calc", "Weekly review prep"]
+    },
+    "nextSessionContext": "Evening shutdown OR next morning. Check: (1) Capital motion progress, (2) Sublet search status, (3) Any backlog closures. Sunday: calculate elliptical vert for week, update dashboard.",
+    "blockers": []
+  }
+}

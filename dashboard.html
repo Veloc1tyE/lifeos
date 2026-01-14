@@ -1,0 +1,3211 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Commitments Dashboard (Local Memory States)</title>
+  <style>
+    :root{
+      --bg:#0b0d10; --panel:#12161c; --panel2:#0f1318; --text:#e8eef6; --muted:#a7b3c2;
+      --line:#243041; --accent:#7dd3fc; --good:#86efac; --warn:#fde68a; --bad:#fca5a5;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius:16px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:var(--sans);
+      background: radial-gradient(1200px 800px at 20% 0%, rgba(125,211,252,.08), transparent 55%),
+                  radial-gradient(1000px 700px at 90% 10%, rgba(134,239,172,.06), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+    }
+    header{
+      position:sticky; top:0; z-index:10;
+      backdrop-filter: blur(10px);
+      background: rgba(11,13,16,.72);
+      border-bottom:1px solid rgba(36,48,65,.6);
+    }
+    .wrap{max-width:1200px; margin:0 auto; padding:16px 18px;}
+    .row{display:flex; gap:12px; flex-wrap:wrap; align-items:center;}
+    h1{font-size:18px; margin:0; letter-spacing:.2px;}
+    .pill{
+      display:inline-flex; gap:8px; align-items:center;
+      padding:8px 10px; border:1px solid rgba(36,48,65,.8);
+      border-radius:999px; background:rgba(18,22,28,.7);
+      color:var(--muted); font-size:12px;
+    }
+    .btn{
+      border:1px solid rgba(36,48,65,.9);
+      background:rgba(18,22,28,.9);
+      color:var(--text);
+      border-radius:999px;
+      padding:9px 12px;
+      font-size:12px;
+      cursor:pointer;
+      transition:.15s transform, .15s background, .15s border-color;
+      user-select:none;
+    }
+    .btn:hover{transform: translateY(-1px); border-color: rgba(125,211,252,.55);}
+    .btn.primary{background:rgba(125,211,252,.12); border-color: rgba(125,211,252,.45);}
+    .btn.danger{background:rgba(252,165,165,.10); border-color: rgba(252,165,165,.45);}
+    .btn:disabled{opacity:.55; cursor:not-allowed; transform:none;}
+    main .wrap{padding-top:18px; padding-bottom:40px;}
+    .grid{
+      display:grid;
+      grid-template-columns: 360px 1fr;
+      gap:16px;
+    }
+    @media (max-width: 980px){
+      .grid{grid-template-columns: 1fr;}
+    }
+    .card{
+      background: linear-gradient(180deg, rgba(18,22,28,.92), rgba(15,19,24,.92));
+      border:1px solid rgba(36,48,65,.85);
+      border-radius:var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .card .hd{
+      padding:14px 14px 10px;
+      border-bottom:1px solid rgba(36,48,65,.55);
+      display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
+    }
+    .card .hd h2{margin:0; font-size:14px;}
+    .card .hd p{margin:6px 0 0; color:var(--muted); font-size:12px; line-height:1.4;}
+    .card .bd{padding:14px;}
+    .stack{display:flex; flex-direction:column; gap:10px;}
+    label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px;}
+    input[type="text"], input[type="number"], textarea, select{
+      width:100%;
+      padding:10px 10px;
+      border-radius:12px;
+      border:1px solid rgba(36,48,65,.9);
+      background:rgba(11,13,16,.65);
+      color:var(--text);
+      outline:none;
+    }
+    textarea{min-height:84px; resize:vertical;}
+    .small{font-size:11px; color:var(--muted)}
+    .muted{color:var(--muted)}
+    .mono{font-family:var(--mono)}
+    .days{display:grid; grid-template-columns: repeat(7, 1fr); gap:8px;}
+    .days{
+      display:grid; 
+      grid-template-columns: repeat(7, minmax(130px, 1fr)); 
+      gap:8px;
+      overflow-x:auto;
+      padding-bottom:8px;
+    }
+    .days::-webkit-scrollbar{height:8px;}
+    .days::-webkit-scrollbar-track{background:rgba(36,48,65,.5); border-radius:4px;}
+    .days::-webkit-scrollbar-thumb{background:rgba(125,211,252,.4); border-radius:4px;}
+    .days::-webkit-scrollbar-thumb:hover{background:rgba(125,211,252,.6);}
+    .day{
+      border:1px solid rgba(36,48,65,.9);
+      border-radius:14px;
+      padding:8px;
+      background:rgba(11,13,16,.55);
+      min-width:120px;
+    }
+    .day strong{display:block; font-size:11px; margin-bottom:6px; color:var(--muted)}
+    .checkline{display:flex; align-items:center; gap:8px; margin:6px 0;}
+    .checkline input{width:16px; height:16px;}
+    .sectionTitle{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      margin:8px 0 6px;
+    }
+    .badge{
+      font-size:11px; padding:4px 8px; border-radius:999px;
+      border:1px solid rgba(36,48,65,.9);
+      background:rgba(11,13,16,.45);
+      color:var(--muted);
+    }
+    .badge.good{border-color: rgba(134,239,172,.55); color: rgba(134,239,172,.95); background:rgba(134,239,172,.08);}
+    .badge.warn{border-color: rgba(253,230,138,.55); color: rgba(253,230,138,.95); background:rgba(253,230,138,.07);}
+    .badge.bad{border-color: rgba(252,165,165,.55); color: rgba(252,165,165,.95); background:rgba(252,165,165,.07);}
+    .kv{display:grid; grid-template-columns: 1fr 1fr; gap:10px;}
+    @media (max-width: 520px){ .kv{grid-template-columns:1fr;} }
+    .hr{height:1px; background:rgba(36,48,65,.55); margin:12px 0;}
+    .list{
+      display:flex; flex-direction:column; gap:8px;
+      padding:10px;
+      background:rgba(11,13,16,.45);
+      border:1px solid rgba(36,48,65,.75);
+      border-radius:14px;
+    }
+    .list-item{
+      display:flex; gap:10px; align-items:center; justify-content:space-between;
+      padding:8px 10px;
+      border-radius:12px;
+      border:1px solid rgba(36,48,65,.75);
+      background:rgba(18,22,28,.75);
+      cursor:pointer;
+    }
+    .list-item:hover{border-color: rgba(125,211,252,.5);}
+    .list-item.active{border-color: rgba(125,211,252,.85); background:rgba(125,211,252,.10);}
+    .list-item .meta{display:flex; flex-direction:column; gap:2px;}
+    .list-item .meta .name{font-size:12px;}
+    .list-item .meta .sub{font-size:11px; color:var(--muted);}
+    .list-item .right{display:flex; gap:8px; align-items:center;}
+    .iconbtn{
+      padding:6px 8px;
+      border-radius:10px;
+      border:1px solid rgba(36,48,65,.85);
+      background:rgba(11,13,16,.45);
+      color:var(--muted);
+      cursor:pointer;
+      font-size:11px;
+    }
+    .iconbtn:hover{border-color: rgba(252,165,165,.55); color: rgba(252,165,165,.95);}
+    .toast{
+      position:fixed; bottom:18px; right:18px;
+      background:rgba(18,22,28,.96);
+      border:1px solid rgba(36,48,65,.9);
+      border-radius:14px;
+      padding:10px 12px;
+      color:var(--text);
+      box-shadow: var(--shadow);
+      font-size:12px;
+      opacity:0; transform: translateY(8px);
+      transition: .18s opacity, .18s transform;
+      pointer-events:none;
+      max-width:420px;
+    }
+    .toast.show{opacity:1; transform:none;}
+    .hint{font-size:11px; color:var(--muted); margin-top:6px; line-height:1.4;}
+    .footerNote{font-size:11px; color:var(--muted); padding:10px 14px 14px;}
+    .mantra{
+      font-size:12px;
+      color:rgba(232,238,246,.95);
+      background:rgba(125,211,252,.08);
+      border:1px solid rgba(125,211,252,.35);
+      padding:10px 12px;
+      border-radius:14px;
+      line-height:1.35;
+    }
+    .summaryRow{
+      display:flex; flex-wrap:wrap; gap:8px; align-items:center;
+      padding:10px 12px;
+      background:rgba(11,13,16,.45);
+      border:1px solid rgba(36,48,65,.75);
+      border-radius:14px;
+      margin-bottom:10px;
+    }
+    .summaryRow .sectionBadge{
+      display:flex; align-items:center; gap:6px;
+      font-size:11px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(36,48,65,.85);
+      background:rgba(18,22,28,.75);
+    }
+    .summaryRow .sectionBadge .emoji{font-size:14px;}
+    .delta{
+      font-size:10px;
+      padding:2px 6px;
+      border-radius:6px;
+      margin-left:4px;
+      font-weight:600;
+    }
+    .delta.up{color:rgba(134,239,172,.95); background:rgba(134,239,172,.12);}
+    .delta.down{color:rgba(252,165,165,.95); background:rgba(252,165,165,.12);}
+    .delta.neutral{color:var(--muted); background:rgba(167,179,194,.08);}
+    .progressBar{
+      height:6px;
+      background:rgba(36,48,65,.75);
+      border-radius:999px;
+      overflow:hidden;
+      margin-top:6px;
+    }
+    .progressBar .fill{
+      height:100%;
+      background:linear-gradient(90deg, rgba(125,211,252,.8), rgba(134,239,172,.8));
+      border-radius:999px;
+      transition:.3s width;
+    }
+    .miniSparkline{
+      display:inline-block;
+      width:40px;
+      height:20px;
+      vertical-align:middle;
+      margin-left:6px;
+    }
+    .kbd{
+      display:inline-block;
+      padding:2px 6px;
+      border:1px solid rgba(36,48,65,.9);
+      border-radius:4px;
+      background:rgba(18,22,28,.7);
+      font-family:var(--mono);
+      font-size:10px;
+      color:var(--muted);
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="row" style="justify-content:space-between">
+      <div class="row" style="gap:10px">
+        <h1>Commitments Dashboard</h1>
+        <span class="pill mono" id="nowPill">—</span>
+        <span class="pill" id="autosavePill">Autosave: <strong>ON</strong></span>
+        <span class="pill" id="lifeosStatusPill" style="cursor:pointer;" title="Click to sync to LifeOS">LifeOS: <strong>—</strong></span>
+        <span class="pill" style="gap:6px;">
+          <span class="kbd">⌘/Ctrl+S</span>Save
+          <span class="kbd" style="margin-left:8px;">⌘/Ctrl+N</span>New
+          <span class="kbd" style="margin-left:8px;">⌘/Ctrl+E</span>Export
+        </span>
+      </div>
+      <div class="row">
+        <button class="btn" id="newStateBtn" title="Create new state (Ctrl/Cmd+N)">New Week / State</button>
+        <button class="btn" id="copyPrevWeekBtn" title="Copy last week as starting point">📋 Copy Previous Week</button>
+        <button class="btn" id="duplicateBtn" title="Duplicate current state">Duplicate</button>
+        <button class="btn primary" id="exportBtn">Export JSON</button>
+        <button class="btn" id="lifeosSetupBtn" title="Setup LifeOS auto-sync folder">LifeOS Setup</button>
+        <button class="btn" id="importBtn">Import JSON</button>
+        <button class="btn danger" id="wipeAllBtn" title="Deletes all saved data from this browser">Wipe All</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <div class="grid">
+      <!-- LEFT: MEMORY STATES -->
+      <section class="card">
+        <div class="hd">
+          <div>
+            <h2>Memory States</h2>
+            <p>Each “state” is a saved snapshot (e.g., a week). Stored locally in your browser via <span class="mono">localStorage</span>.</p>
+          </div>
+          <div class="badge mono" id="stateCountBadge">0</div>
+        </div>
+        <div class="bd stack">
+          <div class="mantra">
+            <div class="mono">Mantra</div>
+            <div><strong>I become worthy by how I live each day.</strong><br/>My structure matches my ambition.</div>
+          </div>
+
+          <div>
+            <label for="stateSearch">Search</label>
+            <input id="stateSearch" type="text" placeholder="Search states by title or notes…" />
+          </div>
+
+          <div class="list" id="stateList"></div>
+
+          <div class="hint">
+            Tip: Use “New Week / State” to create a fresh week. You can still keep older weeks for history.
+          </div>
+        </div>
+        <div class="footerNote">
+          Privacy: this page sends nothing anywhere. If you clear browser storage, you’ll lose saved states unless you export.
+        </div>
+      </section>
+
+      <!-- RIGHT: DASHBOARD -->
+      <section class="card">
+        <div class="hd">
+          <div>
+            <h2 id="editorTitle">No state selected</h2>
+            <p id="editorSubtitle">Create a state to begin tracking your commitments.</p>
+          </div>
+          <div class="row" style="align-items:center">
+            <span class="badge mono" id="statusBadge">—</span>
+            <button class="btn" id="saveBtn">Save</button>
+          </div>
+        </div>
+
+        <div class="bd">
+          <div class="stack" id="editor" style="display:none">
+
+            <!-- QUICK SUMMARY ROW -->
+            <div class="summaryRow" id="summaryRow">
+              <strong style="font-size:11px; color:var(--muted); margin-right:4px;">Quick View:</strong>
+              <!-- Summary badges will be inserted here dynamically -->
+            </div>
+
+            <div class="kv">
+              <div>
+                <label for="title">State title</label>
+                <input id="title" type="text" placeholder="e.g., Week of Jan 6, 2026" />
+              </div>
+              <div>
+                <label for="weekStart">Week start (optional)</label>
+                <input id="weekStart" type="text" placeholder="YYYY-MM-DD" class="mono" />
+                <div class="hint">Optional—purely for your clarity. You can also name the state however you like.</div>
+              </div>
+            </div>
+
+            <div>
+              <label for="overallIntent">Weekly intention (one sentence)</label>
+              <input id="overallIntent" type="text" placeholder="e.g., Calm consistency. Rebuild capacity. Move the pipeline." />
+            </div>
+
+            <div class="hr"></div>
+
+            <!-- HEALTH & RECOVERY -->
+            <div class="sectionTitle">
+              <div>
+                <strong>💊 1) Health & Recovery</strong>
+                <div class="small muted">Goal: <input type="text" id="goalHealth" placeholder="Your goal for this domain" style="display:inline-block; width:auto; min-width:300px; padding:4px 8px; font-size:11px; border:none; background:rgba(36,48,65,.5); margin-left:4px;" /></div>
+              </div>
+              <span class="badge" id="healthBadge">—</span>
+            </div>
+            <div class="days" id="healthDays"></div>
+            
+            <div>
+              <label>Recovery Metrics — Track daily</label>
+              <div class="days" id="recoveryDays" style="grid-template-columns: repeat(7, minmax(120px, 1fr));"></div>
+              <div class="hint">RHR (lower = better) and HRV (higher = better) — your most reliable recovery signals</div>
+            </div>
+            
+            <div>
+              <label>Recovery Trend — Last 12 Weeks</label>
+              <canvas id="rhrTrend" style="width:100%; height:160px; border:1px solid rgba(36,48,65,.75); border-radius:14px; background:rgba(11,13,16,.45);"></canvas>
+              <div class="hint">RHR (blue, daily) & HRV (green, 7-day avg). Watch for divergence: rising RHR + dropping HRV = overtraining</div>
+            </div>
+            
+            <div class="kv">
+              <div>
+                <label for="sleepTarget">Sleep target (hours)</label>
+                <input id="sleepTarget" type="number" min="0" step="0.5" placeholder="e.g., 8" />
+              </div>
+              <div>
+                <label for="painScale">Pain / limitation (0–10)</label>
+                <input id="painScale" type="number" min="0" max="10" step="1" placeholder="e.g., 3" />
+              </div>
+            </div>
+            <div>
+              <label for="healthNotes">Notes (pain, fatigue, wins)</label>
+              <textarea id="healthNotes" placeholder="Facts only. What happened? What helped?"></textarea>
+            </div>
+
+            <div class="hr"></div>
+
+            <!-- TRAINING -->
+            <div class="sectionTitle">
+              <div>
+                <strong>🏃 2) Training Trajectory</strong>
+                <div class="small muted">Goal: <input type="text" id="goalTraining" placeholder="Your goal for this domain" style="display:inline-block; width:auto; min-width:300px; padding:4px 8px; font-size:11px; border:none; background:rgba(36,48,65,.5); margin-left:4px;" /></div>
+              </div>
+              <span class="badge" id="trainingBadge">—</span>
+            </div>
+            <div class="kv">
+              <div>
+                <label for="trainingTime">Weekly intensity minutes</label>
+                <input id="trainingTime" type="number" min="0" step="5" placeholder="e.g., 240" />
+              </div>
+              <div>
+                <label for="trainingVert">Weekly vertical (floors)</label>
+                <input id="trainingVert" type="number" min="0" step="10" placeholder="e.g., 1200" />
+              </div>
+            </div>
+
+            <div>
+              <label>Intensity Minutes + Vertical Floors (last 12 weeks)</label>
+              <canvas id="intensityTrend" style="width:100%; height:160px; border:1px solid rgba(36,48,65,.75); border-radius:14px; background:rgba(11,13,16,.45);"></canvas>
+              <div class="hint">Intensity minutes (solid green, left axis) + vertical floors (dotted blue, right axis)</div>
+            </div>
+
+            <div class="hr" style="margin:16px 0 12px;"></div>
+
+            <!-- ENDURANCE SCORE (Primary UTA 100 Metric) -->
+            <div style="background:rgba(125,211,252,.06); border:1px solid rgba(125,211,252,.25); border-radius:14px; padding:12px; margin-bottom:12px;">
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+                <strong style="font-size:13px;">⚡ Endurance Score</strong>
+                <span class="badge" id="enduranceBadge" style="font-size:10px;">PRIMARY</span>
+              </div>
+              <div class="kv">
+                <div>
+                  <label for="enduranceScore">This week's average</label>
+                  <input id="enduranceScore" type="number" min="0" step="1" placeholder="e.g., 5628" />
+                </div>
+                <div>
+                  <label for="enduranceTarget">January target</label>
+                  <input id="enduranceTarget" type="text" value="5,800 – 6,200" disabled style="opacity:0.7;" />
+                </div>
+              </div>
+              <div style="margin-top:10px;">
+                <label>Endurance Score Trajectory (last 12 weeks)</label>
+                <canvas id="enduranceTrend" style="width:100%; height:160px; border:1px solid rgba(125,211,252,.35); border-radius:14px; background:rgba(11,13,16,.55);"></canvas>
+                <div class="hint">Primary metric for UTA 100. Target zones: Jan 5.8-6.2k → May 8.5-9k. Steady rise without volatility = on track.</div>
+              </div>
+            </div>
+
+            <div class="kv">
+              <div class="day">
+                <strong>Weekly Requirements</strong>
+                <div class="checkline"><input type="checkbox" id="trainingLong" /><span>Long aerobic session</span></div>
+                <div class="checkline"><input type="checkbox" id="trainingHills" /><span>Hills / vertical exposure</span></div>
+                <div class="checkline"><input type="checkbox" id="trainingStrength" /><span>Strength</span></div>
+                <div class="checkline"><input type="checkbox" id="trainingEasy" /><span>Easy aerobic / recovery</span></div>
+              </div>
+              <div>
+                <label for="trainingNotes">Comment</label>
+                <textarea id="trainingNotes" placeholder="What happened this week? Adjustments? Signals from the body?"></textarea>
+              </div>
+            </div>
+
+            <div class="kv">
+              <div>
+                <label for="trainingFocus">This week's focus</label>
+                <input id="trainingFocus" type="text" placeholder="e.g., Easy aerobic base + gentle vert exposure" />
+              </div>
+              <div>
+                <label for="trainingAdjust">Injury-safe adjustment used?</label>
+                <select id="trainingAdjust">
+                  <option value="no">No</option>
+                  <option value="yes">Yes</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="hr"></div>
+
+            <!-- ARABIC + STUDY -->
+            <div class="sectionTitle">
+              <div>
+                <strong>📚 3) Study Areas</strong>
+                <div class="small muted">Goal: <input type="text" id="goalLearn" placeholder="Your goal for this domain" style="display:inline-block; width:auto; min-width:300px; padding:4px 8px; font-size:11px; border:none; background:rgba(36,48,65,.5); margin-left:4px;" /></div>
+              </div>
+              <span class="badge" id="learnBadge">—</span>
+            </div>
+            <div class="kv">
+              <div>
+                <label for="arabicSpeakingDays">Arabic speaking days (0–7)</label>
+                <input id="arabicSpeakingDays" type="number" min="0" max="7" step="1" placeholder="e.g., 5" />
+              </div>
+              <div>
+                <label for="arabicLesson">Structured lesson completed?</label>
+                <select id="arabicLesson">
+                  <option value="no">No</option>
+                  <option value="yes">Yes</option>
+                </select>
+              </div>
+            </div>
+            <div class="kv">
+              <div>
+                <label for="arabicRecording">3-min recording done (if scheduled)?</label>
+                <select id="arabicRecording">
+                  <option value="no">No</option>
+                  <option value="yes">Yes</option>
+                  <option value="n/a">N/A</option>
+                </select>
+              </div>
+              <div>
+                <label for="chaptersRead">Textbook chapters read (0–7)</label>
+                <input id="chaptersRead" type="number" min="0" max="7" step="1" placeholder="e.g., 6" />
+              </div>
+            </div>
+            <div>
+              <label for="learnNotes">Observation</label>
+              <textarea id="learnNotes" placeholder="What improved? What’s the next tweak?"></textarea>
+            </div>
+
+            <div class="hr"></div>
+
+            <!-- CAPITAL / WORK -->
+            <div class="sectionTitle">
+              <div>
+                <strong>💼 4) Capital Motion</strong>
+                <div class="small muted">Goal: <input type="text" id="goalWork" placeholder="Your goal for this domain" style="display:inline-block; width:auto; min-width:300px; padding:4px 8px; font-size:11px; border:none; background:rgba(36,48,65,.5); margin-left:4px;" /></div>
+              </div>
+              <span class="badge" id="workBadge">—</span>
+            </div>
+            <div class="kv">
+              <div>
+                <label for="meetings">Meetings/events attended</label>
+                <input id="meetings" type="number" min="0" step="1" placeholder="e.g., 5" />
+              </div>
+              <div>
+                <label for="intros">Warm intros requested</label>
+                <input id="intros" type="number" min="0" step="1" placeholder="e.g., 10" />
+              </div>
+            </div>
+            <div class="kv">
+              <div>
+                <label for="followups">Follow-ups within 48h (count)</label>
+                <input id="followups" type="number" min="0" step="1" placeholder="e.g., 12" />
+              </div>
+              <div>
+                <label for="crmUpdated">CRM updated?</label>
+                <select id="crmUpdated">
+                  <option value="no">No</option>
+                  <option value="yes">Yes</option>
+                </select>
+              </div>
+            </div>
+            <div class="kv">
+              <div>
+                <label for="workWins">Key conversations / momentum</label>
+                <textarea id="workWins" placeholder="Bullet the signal. Who moved? What’s next?"></textarea>
+              </div>
+              <div>
+                <label for="workOneSeriousThing">One thing I did seriously</label>
+                <textarea id="workOneSeriousThing" placeholder="One line. Proof of seriousness."></textarea>
+              </div>
+            </div>
+
+            <div class="hr"></div>
+
+            <!-- RELATIONSHIPS -->
+            <div class="sectionTitle">
+              <div>
+                <strong>🤝 5) Relationships</strong>
+                <div class="small muted">Goal: <input type="text" id="goalRel" placeholder="Your goal for this domain" style="display:inline-block; width:auto; min-width:300px; padding:4px 8px; font-size:11px; border:none; background:rgba(36,48,65,.5); margin-left:4px;" /></div>
+              </div>
+              <span class="badge" id="relBadge">—</span>
+            </div>
+            <div class="kv">
+              <div>
+                <label for="checkins">Daily check-ins (0–7)</label>
+                <input id="checkins" type="number" min="0" max="7" step="1" placeholder="e.g., 6" />
+              </div>
+              <div>
+                <label for="weeklySocial">Weekly social activity done?</label>
+                <select id="weeklySocial">
+                  <option value="no">No</option>
+                  <option value="yes">Yes</option>
+                </select>
+              </div>
+            </div>
+            <div class="kv">
+              <div>
+                <label for="oneOnOnes">1:1 catch-ups completed (count)</label>
+                <input id="oneOnOnes" type="number" min="0" step="1" placeholder="e.g., 3" />
+              </div>
+              <div>
+                <label for="coreTouched">Core friendships touched (0–5)</label>
+                <input id="coreTouched" type="number" min="0" max="5" step="1" placeholder="e.g., 4" />
+              </div>
+            </div>
+            <div>
+              <label for="relEnergy">Energy check</label>
+              <select id="relEnergy">
+                <option value="nourishing">Nourishing</option>
+                <option value="neutral">Neutral</option>
+                <option value="draining">Draining</option>
+              </select>
+            </div>
+
+            <div class="hr"></div>
+
+            <!-- CREATIVE / OUTPUT -->
+            <div class="sectionTitle">
+              <div>
+                <strong>✨ 6) Creative & Output</strong>
+                <div class="small muted">Goal: <input type="text" id="goalOutput" placeholder="Your goal for this domain" style="display:inline-block; width:auto; min-width:300px; padding:4px 8px; font-size:11px; border:none; background:rgba(36,48,65,.5); margin-left:4px;" /></div>
+              </div>
+              <span class="badge" id="outBadge">—</span>
+            </div>
+            <div class="kv">
+              <div class="day">
+                <strong>Binary outputs</strong>
+                <div class="checkline"><input type="checkbox" id="wrote" /><span>Published one piece of writing</span></div>
+                <div class="checkline"><input type="checkbox" id="project" /><span>Monthly project progressed / completed</span></div>
+                <div class="checkline"><input type="checkbox" id="admin" /><span>Personal admin / loose ends closed</span></div>
+              </div>
+              <div>
+                <label for="shipped">What I shipped or moved forward</label>
+                <textarea id="shipped" placeholder="Name the thing. Keep it concrete."></textarea>
+              </div>
+            </div>
+
+            <div class="hr"></div>
+
+            <!-- LIFE CHECKER -->
+            <div class="sectionTitle">
+              <div>
+                <strong>🎯 7) Life Checker</strong>
+                <div class="small muted">Goal: <input type="text" id="goalLife" placeholder="Your goal for this domain" style="display:inline-block; width:auto; min-width:300px; padding:4px 8px; font-size:11px; border:none; background:rgba(36,48,65,.5); margin-left:4px;" /></div>
+              </div>
+              <span class="badge" id="lifeBadge">—</span>
+            </div>
+
+            <div class="kv">
+              <div>
+                <label for="lifeHealth">Health / Recovery (1–5)</label>
+                <select id="lifeHealth">
+                  <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
+                </select>
+              </div>
+              <div>
+                <label for="lifeFitness">Fitness / Training (1–5)</label>
+                <select id="lifeFitness">
+                  <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="kv">
+              <div>
+                <label for="lifeWork">Work / Mission (1–5)</label>
+                <select id="lifeWork">
+                  <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
+                </select>
+              </div>
+              <div>
+                <label for="lifeRelationships">Relationships (1–5)</label>
+                <select id="lifeRelationships">
+                  <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="kv">
+              <div>
+                <label for="lifeLearning">Learning / Study (1–5)</label>
+                <select id="lifeLearning">
+                  <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
+                </select>
+              </div>
+              <div>
+                <label for="lifeMind">Mind / Regulation (1–5)</label>
+                <select id="lifeMind">
+                  <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="kv">
+              <div>
+                <label for="lifeAppearance">Environment / Appearance (1–5)</label>
+                <select id="lifeAppearance">
+                  <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
+                </select>
+              </div>
+              <div>
+                <label for="lifeJoy">Joy / Play (1–5)</label>
+                <select id="lifeJoy">
+                  <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="kv">
+              <div>
+                <label>Total</label>
+                <div class="pill mono" id="lifeTotalPill">Total: —</div>
+                <div class="hint">Max = 40. This is a weekly signal, not a judgment.</div>
+              </div>
+              <div>
+                <label>Trend (last 12 weeks)</label>
+                <canvas id="lifeTrend" style="width:100%; height:140px; border:1px solid rgba(36,48,65,.75); border-radius:14px; background:rgba(11,13,16,.45);"></canvas>
+              </div>
+            </div>
+
+            <div class="hr"></div>
+
+            <!-- WEEKLY INTEGRITY REVIEW -->
+            <div class="sectionTitle">
+              <div>
+                <strong>📋 8) Weekly Integrity Review</strong>
+                <div class="small muted">Goal: <input type="text" id="goalReview" placeholder="Your goal for this domain" style="display:inline-block; width:auto; min-width:300px; padding:4px 8px; font-size:11px; border:none; background:rgba(36,48,65,.5); margin-left:4px;" /></div>
+              </div>
+              <span class="badge" id="reviewBadge">—</span>
+            </div>
+            <div class="kv">
+              <div>
+                <label for="keptPromises">Kept promises to myself this week</label>
+                <select id="keptPromises">
+                  <option value="most">Most</option>
+                  <option value="some">Some</option>
+                  <option value="few">Few</option>
+                </select>
+              </div>
+              <div>
+                <label for="nextAdjust">One adjustment for next week</label>
+                <input id="nextAdjust" type="text" placeholder="e.g., Fix bedtime, reduce volume, increase follow-up speed" />
+              </div>
+            </div>
+            <div class="kv">
+              <div>
+                <label for="held">Where structure held</label>
+                <textarea id="held"></textarea>
+              </div>
+              <div>
+                <label for="slipped">Where structure slipped (facts only)</label>
+                <textarea id="slipped"></textarea>
+              </div>
+            </div>
+
+            <div class="hr"></div>
+
+            <div class="row" style="justify-content:space-between; align-items:flex-start">
+              <div class="small">
+                <div><strong>Scoring</strong>: each section earns a badge based on completion signals. It’s not moral judgment—just feedback.</div>
+                <div class="hint">Everything autosaves (unless you toggle it off). Export JSON occasionally if you want backups.</div>
+              </div>
+              <div class="row">
+                <button class="btn" id="toggleAutosaveBtn">Toggle Autosave</button>
+                <button class="btn danger" id="deleteStateBtn">Delete State</button>
+              </div>
+            </div>
+
+          </div>
+
+          <div id="emptyState" class="stack">
+            <div class="mantra">
+              <div class="mono">Start here</div>
+              <div>Create your first memory state (e.g., “Week of Jan 6, 2026”), then track commitments in the editor.</div>
+            </div>
+            <button class="btn primary" id="createFirstBtn">Create First State</button>
+            <div class="hint">
+              Works offline. Save this file as <span class="mono">dashboard.html</span>, open it in your browser, and it will store data locally.
+            </div>
+          </div>
+        </div>
+
+        <div class="footerNote">
+          If you want “true local files” (not browser storage), you can use the Export/Import buttons to keep JSON backups in a folder.
+        </div>
+      </section>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast">Saved.</div>
+
+<script>
+(() => {
+  // ---------- helpers ----------
+  const $ = (id) => document.getElementById(id);
+  const nowPill = $("nowPill");
+  const toast = $("toast");
+
+  const DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+
+  // ============================================
+  // SCHEMA-DRIVEN SECTION CONFIGURATION
+  // ============================================
+  const SECTIONS = {
+    health: {
+      name: "Health & Recovery",
+      emoji: "💊",
+      order: 1,
+      badgeId: "healthBadge",
+      goalId: "goalHealth",
+      defaultGoal: "Heal injury, rebuild capacity, protect nervous system",
+      defaultData: () => ({
+        sleepTarget: "",
+        painScale: "",
+        notes: "",
+        days: DAYS.map(() => ({ rehab: false, aerobic: false, strength: false, sleep: false })),
+        rhr: DAYS.map(() => ""),
+        hrv: DAYS.map(() => "")
+      }),
+      scoring: (state) => {
+        let score = 0;
+        const max = 28; // 4 checkboxes × 7 days
+        (state.health?.days || []).forEach(day => {
+          ["rehab", "aerobic", "strength", "sleep"].forEach(k => { if (day[k]) score++; });
+        });
+        return { score, max };
+      },
+      badge: (score, max) => {
+        if (max === 0) return { label: "—", cls: "" };
+        const pct = score / max;
+        if (pct >= 0.75) return { label: `Good (${Math.round(pct * 100)}%)`, cls: "good" };
+        if (pct >= 0.45) return { label: `OK (${Math.round(pct * 100)}%)`, cls: "warn" };
+        return { label: `Low (${Math.round(pct * 100)}%)`, cls: "bad" };
+      },
+      chart: "rhrTrend",
+      bindings: [
+        { id: "sleepTarget", path: "health.sleepTarget", type: "input" },
+        { id: "painScale", path: "health.painScale", type: "input" },
+        { id: "healthNotes", path: "health.notes", type: "input" }
+      ],
+      builders: ["buildHealthDays", "buildRecoveryDays"]
+    },
+
+    training: {
+      name: "Training Trajectory",
+      emoji: "🏃",
+      order: 2,
+      badgeId: "trainingBadge",
+      goalId: "goalTraining",
+      defaultGoal: "Complete UTA 100km (May 2026)",
+      defaultData: () => ({
+        time: "",
+        vert: "",
+        enduranceScore: "",
+        focus: "",
+        adjust: "no",
+        notes: "",
+        weekly: { long: false, hills: false, strength: false, easy: false }
+      }),
+      scoring: (state) => {
+        const w = state.training?.weekly || {};
+        const score = [w.long, w.hills, w.strength, w.easy].filter(Boolean).length;
+        return { score, max: 4 };
+      },
+      badge: (score, max) => {
+        if (max === 0) return { label: "—", cls: "" };
+        const pct = score / max;
+        if (pct >= 0.75) return { label: `Good (${Math.round(pct * 100)}%)`, cls: "good" };
+        if (pct >= 0.45) return { label: `OK (${Math.round(pct * 100)}%)`, cls: "warn" };
+        return { label: `Low (${Math.round(pct * 100)}%)`, cls: "bad" };
+      },
+      chart: "intensityTrend",
+      bindings: [
+        { id: "trainingTime", path: "training.time", type: "input" },
+        { id: "trainingVert", path: "training.vert", type: "input" },
+        { id: "enduranceScore", path: "training.enduranceScore", type: "input" },
+        { id: "trainingFocus", path: "training.focus", type: "input" },
+        { id: "trainingAdjust", path: "training.adjust", type: "select" },
+        { id: "trainingNotes", path: "training.notes", type: "input" },
+        { id: "trainingLong", path: "training.weekly.long", type: "checkbox" },
+        { id: "trainingHills", path: "training.weekly.hills", type: "checkbox" },
+        { id: "trainingStrength", path: "training.weekly.strength", type: "checkbox" },
+        { id: "trainingEasy", path: "training.weekly.easy", type: "checkbox" }
+      ]
+    },
+
+    learn: {
+      name: "Study Areas",
+      emoji: "📚",
+      order: 3,
+      badgeId: "learnBadge",
+      goalId: "goalLearn",
+      defaultGoal: "Basic conversational Arabic + understand light",
+      defaultData: () => ({
+        arabicSpeakingDays: "",
+        arabicLesson: "no",
+        arabicRecording: "n/a",
+        chaptersRead: "",
+        notes: ""
+      }),
+      scoring: (state) => {
+        const clamp = (v, min, max) => Math.max(min, Math.min(max, Number(v) || 0));
+        const aDays = clamp(state.learn?.arabicSpeakingDays, 0, 7);
+        const chapters = clamp(state.learn?.chaptersRead, 0, 7);
+        const lesson = state.learn?.arabicLesson === "yes" ? 1 : 0;
+        return { score: aDays + chapters + lesson, max: 15 };
+      },
+      badge: (score, max) => {
+        if (max === 0) return { label: "—", cls: "" };
+        const pct = score / max;
+        if (pct >= 0.75) return { label: `Good (${Math.round(pct * 100)}%)`, cls: "good" };
+        if (pct >= 0.45) return { label: `OK (${Math.round(pct * 100)}%)`, cls: "warn" };
+        return { label: `Low (${Math.round(pct * 100)}%)`, cls: "bad" };
+      },
+      bindings: [
+        { id: "arabicSpeakingDays", path: "learn.arabicSpeakingDays", type: "input" },
+        { id: "arabicLesson", path: "learn.arabicLesson", type: "select" },
+        { id: "arabicRecording", path: "learn.arabicRecording", type: "select" },
+        { id: "chaptersRead", path: "learn.chaptersRead", type: "input" },
+        { id: "learnNotes", path: "learn.notes", type: "input" }
+      ]
+    },
+
+    work: {
+      name: "Capital Motion",
+      emoji: "💼",
+      order: 4,
+      badgeId: "workBadge",
+      goalId: "goalWork",
+      defaultGoal: "$50M+ capital & $20M+ contract LOIs for UAE",
+      defaultData: () => ({
+        meetings: "",
+        intros: "",
+        followups: "",
+        crmUpdated: "no",
+        wins: "",
+        oneSerious: ""
+      }),
+      scoring: (state) => {
+        const clamp = (v, min, max) => Math.max(min, Math.min(max, Number(v) || 0));
+        const meetings = clamp(state.work?.meetings, 0, 999);
+        const intros = clamp(state.work?.intros, 0, 999);
+        const followups = clamp(state.work?.followups, 0, 999);
+        const crm = state.work?.crmUpdated === "yes" ? 1 : 0;
+        let score = 0;
+        if (meetings >= 5) score++;
+        if (intros >= 10) score++;
+        if (followups >= meetings * 2 && meetings > 0) score++; // Conditional logic
+        if (crm) score++;
+        return { score, max: 4 };
+      },
+      badge: (score, max) => {
+        if (max === 0) return { label: "—", cls: "" };
+        const pct = score / max;
+        if (pct >= 0.75) return { label: `Good (${Math.round(pct * 100)}%)`, cls: "good" };
+        if (pct >= 0.45) return { label: `OK (${Math.round(pct * 100)}%)`, cls: "warn" };
+        return { label: `Low (${Math.round(pct * 100)}%)`, cls: "bad" };
+      },
+      bindings: [
+        { id: "meetings", path: "work.meetings", type: "input" },
+        { id: "intros", path: "work.intros", type: "input" },
+        { id: "followups", path: "work.followups", type: "input" },
+        { id: "crmUpdated", path: "work.crmUpdated", type: "select" },
+        { id: "workWins", path: "work.wins", type: "input" },
+        { id: "workOneSeriousThing", path: "work.oneSerious", type: "input" }
+      ]
+    },
+
+    rel: {
+      name: "Relationships",
+      emoji: "🤝",
+      order: 5,
+      badgeId: "relBadge",
+      goalId: "goalRel",
+      defaultGoal: "Five deep friendships maintained with rhythm",
+      defaultData: () => ({
+        checkins: "",
+        weeklySocial: "no",
+        oneOnOnes: "",
+        coreTouched: "",
+        energy: "nourishing"
+      }),
+      scoring: (state) => {
+        const clamp = (v, min, max) => Math.max(min, Math.min(max, Number(v) || 0));
+        const checkins = clamp(state.rel?.checkins, 0, 7);
+        const weeklySocial = state.rel?.weeklySocial === "yes" ? 1 : 0;
+        const coreTouched = clamp(state.rel?.coreTouched, 0, 5);
+        return { score: checkins + coreTouched + weeklySocial, max: 13 };
+      },
+      badge: (score, max) => {
+        if (max === 0) return { label: "—", cls: "" };
+        const pct = score / max;
+        if (pct >= 0.75) return { label: `Good (${Math.round(pct * 100)}%)`, cls: "good" };
+        if (pct >= 0.45) return { label: `OK (${Math.round(pct * 100)}%)`, cls: "warn" };
+        return { label: `Low (${Math.round(pct * 100)}%)`, cls: "bad" };
+      },
+      bindings: [
+        { id: "checkins", path: "rel.checkins", type: "input" },
+        { id: "weeklySocial", path: "rel.weeklySocial", type: "select" },
+        { id: "oneOnOnes", path: "rel.oneOnOnes", type: "input" },
+        { id: "coreTouched", path: "rel.coreTouched", type: "input" },
+        { id: "relEnergy", path: "rel.energy", type: "select" }
+      ]
+    },
+
+    life: {
+      name: "Life Checker",
+      emoji: "🎯",
+      order: 6,
+      badgeId: "lifeBadge",
+      goalId: "goalLife",
+      defaultGoal: "Track key pillars weekly and trend upward",
+      pillars: ["health", "fitness", "work", "relationships", "learning", "mind", "appearance", "joy"],
+      defaultData: () => ({
+        health: "3", fitness: "3", work: "3", relationships: "3",
+        learning: "3", mind: "3", appearance: "3", joy: "3"
+      }),
+      scoring: (state) => {
+        const life = state.life || {};
+        const pillars = ["health", "fitness", "work", "relationships", "learning", "mind", "appearance", "joy"];
+        const total = pillars.reduce((sum, k) => {
+          const n = Number(life[k]);
+          return sum + (Number.isFinite(n) ? Math.min(5, Math.max(1, n)) : 3);
+        }, 0);
+        return { score: total, max: 40 };
+      },
+      badge: (score, max) => {
+        // Life uses special format: "Total X/40"
+        const pct = score / max;
+        let cls = "good";
+        if (pct < 0.65) cls = "warn";
+        if (pct < 0.35) cls = "bad";
+        return { label: `Total ${score}/40`, cls };
+      },
+      chart: "lifeTrend",
+      bindings: [
+        { id: "lifeHealth", path: "life.health", type: "select" },
+        { id: "lifeFitness", path: "life.fitness", type: "select" },
+        { id: "lifeWork", path: "life.work", type: "select" },
+        { id: "lifeRelationships", path: "life.relationships", type: "select" },
+        { id: "lifeLearning", path: "life.learning", type: "select" },
+        { id: "lifeMind", path: "life.mind", type: "select" },
+        { id: "lifeAppearance", path: "life.appearance", type: "select" },
+        { id: "lifeJoy", path: "life.joy", type: "select" }
+      ]
+    },
+
+    output: {
+      name: "Creative & Output",
+      emoji: "✨",
+      order: 7,
+      badgeId: "outBadge",
+      goalId: "goalOutput",
+      defaultGoal: "Weekly writing + monthly projects shipped",
+      defaultData: () => ({
+        wrote: false,
+        project: false,
+        admin: false,
+        shipped: ""
+      }),
+      scoring: (state) => {
+        const count = [state.output?.wrote, state.output?.project, state.output?.admin].filter(Boolean).length;
+        return { score: count, max: 3 };
+      },
+      badge: (score, max) => {
+        if (max === 0) return { label: "—", cls: "" };
+        const pct = score / max;
+        if (pct >= 0.75) return { label: `Good (${Math.round(pct * 100)}%)`, cls: "good" };
+        if (pct >= 0.45) return { label: `OK (${Math.round(pct * 100)}%)`, cls: "warn" };
+        return { label: `Low (${Math.round(pct * 100)}%)`, cls: "bad" };
+      },
+      bindings: [
+        { id: "wrote", path: "output.wrote", type: "checkbox" },
+        { id: "project", path: "output.project", type: "checkbox" },
+        { id: "admin", path: "output.admin", type: "checkbox" },
+        { id: "shipped", path: "output.shipped", type: "input" }
+      ]
+    },
+
+    review: {
+      name: "Weekly Integrity Review",
+      emoji: "📋",
+      order: 8,
+      badgeId: "reviewBadge",
+      goalId: "goalReview",
+      defaultGoal: "Close the loop - learn, adjust, recommit",
+      defaultData: () => ({
+        keptPromises: "most",
+        held: "",
+        slipped: "",
+        nextAdjust: ""
+      }),
+      scoring: (state) => {
+        const kp = state.review?.keptPromises;
+        const score = kp === "most" ? 3 : kp === "some" ? 2 : 1;
+        return { score, max: 3 };
+      },
+      badge: (score, max) => {
+        if (max === 0) return { label: "—", cls: "" };
+        const pct = score / max;
+        if (pct >= 0.75) return { label: `Good (${Math.round(pct * 100)}%)`, cls: "good" };
+        if (pct >= 0.45) return { label: `OK (${Math.round(pct * 100)}%)`, cls: "warn" };
+        return { label: `Low (${Math.round(pct * 100)}%)`, cls: "bad" };
+      },
+      bindings: [
+        { id: "keptPromises", path: "review.keptPromises", type: "select" },
+        { id: "held", path: "review.held", type: "input" },
+        { id: "slipped", path: "review.slipped", type: "input" },
+        { id: "nextAdjust", path: "review.nextAdjust", type: "input" }
+      ]
+    }
+  };
+
+  // Helper to get/set nested state values by path
+  const getPath = (obj, path) => path.split('.').reduce((o, k) => o?.[k], obj);
+  const setPath = (obj, path, value) => {
+    const keys = path.split('.');
+    const last = keys.pop();
+    const target = keys.reduce((o, k) => o[k] = o[k] || {}, obj);
+    target[last] = value;
+  };
+
+  const LS_KEY = "commitments_dashboard_v1";
+  const LS_AUTOSAVE = "commitments_dashboard_autosave_v1";
+  const LS_LAST_EXPORT = "commitments_dashboard_last_export_v1";
+
+  // Check for export reminder (2+ weeks)
+  const checkExportReminder = () => {
+    const lastExport = localStorage.getItem(LS_LAST_EXPORT);
+    if (!lastExport) return;
+    const daysSince = (Date.now() - Number(lastExport)) / (1000*60*60*24);
+    if (daysSince >= 14) {
+      showToast("⚠️ Reminder: It's been 2+ weeks since your last export. Consider backing up!", 3500);
+    }
+  };
+
+  // Schema-driven defaultState generator
+  const defaultState = () => {
+    const state = {
+      id: crypto.randomUUID(),
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      title: "",
+      weekStart: "",
+      overallIntent: "",
+      autosaveSnapshotVersion: 1,
+      goals: {}
+    };
+
+    // Generate section data and goals from SECTIONS schema
+    Object.keys(SECTIONS).forEach(key => {
+      const section = SECTIONS[key];
+      state[key] = section.defaultData();
+      state.goals[key] = section.defaultGoal;
+    });
+
+    return state;
+  };
+
+  const loadDB = () => {
+    try {
+      const raw = localStorage.getItem(LS_KEY);
+      if (!raw) return { states: [], selectedId: null };
+      const db = JSON.parse(raw);
+      if (!db.states) return { states: [], selectedId: null };
+      return db;
+    } catch {
+      return { states: [], selectedId: null };
+    }
+  };
+
+  const saveDB = (db) => {
+    localStorage.setItem(LS_KEY, JSON.stringify(db));
+    // Trigger LifeOS sync if available (defined later in file)
+    if (typeof syncToLifeos === "function") {
+      syncToLifeos().catch(() => {});
+    }
+  };
+
+  const showToast = (msg, duration = 1200) => {
+    toast.textContent = msg;
+    toast.classList.add("show");
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => toast.classList.remove("show"), duration);
+  };
+
+  const fmtDateTime = (ts) => {
+    const d = new Date(ts);
+    return d.toLocaleString(undefined, {year:"numeric", month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit"});
+  };
+
+  const computeBadge = (score, max) => {
+    if (max === 0) return { label:"—", cls:"" };
+    const pct = score / max;
+    if (pct >= 0.75) return { label:`Good (${Math.round(pct*100)}%)`, cls:"good" };
+    if (pct >= 0.45) return { label:`OK (${Math.round(pct*100)}%)`, cls:"warn" };
+    return { label:`Low (${Math.round(pct*100)}%)`, cls:"bad" };
+  };
+
+  // Get previous state (by weekStart or updatedAt)
+  const getPreviousState = (currentState) => {
+    if (!currentState) return null;
+    const sorted = [...db.states].sort((a,b) => {
+      const aw = (a.weekStart || "").trim();
+      const bw = (b.weekStart || "").trim();
+      if (aw && bw) return aw.localeCompare(bw);
+      return a.updatedAt - b.updatedAt;
+    });
+    const idx = sorted.findIndex(s => s.id === currentState.id);
+    return idx > 0 ? sorted[idx - 1] : null;
+  };
+
+  // Compute delta between two values
+  const computeDelta = (current, previous) => {
+    const diff = current - previous;
+    if (Math.abs(diff) < 0.5) return { text: "→", cls: "neutral" };
+    if (diff > 0) return { text: `+${Math.round(diff)}`, cls: "up" };
+    return { text: Math.round(diff).toString(), cls: "down" };
+  };
+
+  // Get next week date (add 7 days to last weekStart)
+  const getNextWeekDate = () => {
+    const sorted = [...db.states].sort((a,b) => {
+      const aw = (a.weekStart || "").trim();
+      const bw = (b.weekStart || "").trim();
+      if (aw && bw) return bw.localeCompare(aw); // descending
+      return b.updatedAt - a.updatedAt;
+    });
+    if (sorted.length === 0) return "";
+    const lastWeek = sorted[0].weekStart?.trim();
+    if (!lastWeek) return "";
+    try {
+      const d = new Date(lastWeek + "T00:00:00");
+      d.setDate(d.getDate() + 7);
+      return d.toISOString().split("T")[0];
+    } catch {
+      return "";
+    }
+  };
+
+  // ---------- render day check grids ----------
+  function buildHealthDays(container, state){
+    container.innerHTML = "";
+    DAYS.forEach((d, i) => {
+      const el = document.createElement("div");
+      el.className = "day";
+      
+      // Sunday (index 6) is a rest day - only meditation and sleep
+      const isSunday = i === 6;
+      
+      if (isSunday) {
+        el.innerHTML = `
+          <strong>${d} <span style="font-size:10px; color:var(--muted);">(Rest)</span></strong>
+          <div class="checkline"><input type="checkbox" data-k="rehab" data-i="${i}"><span>Meditation</span></div>
+          <div class="checkline"><input type="checkbox" data-k="sleep" data-i="${i}"><span>Sleep</span></div>
+        `;
+      } else {
+        el.innerHTML = `
+          <strong>${d}</strong>
+          <div class="checkline"><input type="checkbox" data-k="rehab" data-i="${i}"><span>Meditation</span></div>
+          <div class="checkline"><input type="checkbox" data-k="aerobic" data-i="${i}"><span>Aerobic</span></div>
+          <div class="checkline"><input type="checkbox" data-k="strength" data-i="${i}"><span>Strength</span></div>
+          <div class="checkline"><input type="checkbox" data-k="sleep" data-i="${i}"><span>Sleep</span></div>
+        `;
+      }
+      
+      container.appendChild(el);
+    });
+    container.querySelectorAll("input[type=checkbox]").forEach(cb => {
+      const i = Number(cb.dataset.i);
+      const k = cb.dataset.k;
+    
+      cb.checked = !!state.health.days[i][k];
+      cb.addEventListener("change", () => {
+        state.health.days[i][k] = cb.checked;
+        touch(state);
+      });
+    });
+  }
+
+  function buildUtaDays(container, state){
+    container.innerHTML = "";
+    DAYS.forEach((d, i) => {
+      const el = document.createElement("div");
+      el.className = "day";
+      el.innerHTML = `
+        <strong>${d}</strong>
+        <div class="checkline"><input type="checkbox" data-k="long" data-i="${i}"><span>Long</span></div>
+        <div class="checkline"><input type="checkbox" data-k="hills" data-i="${i}"><span>Hills</span></div>
+        <div class="checkline"><input type="checkbox" data-k="strength" data-i="${i}"><span>Strength</span></div>
+        <div class="checkline"><input type="checkbox" data-k="easy" data-i="${i}"><span>Easy</span></div>
+      `;
+      container.appendChild(el);
+    });
+    container.querySelectorAll("input[type=checkbox]").forEach(cb => {
+      const i = Number(cb.dataset.i);
+      const k = cb.dataset.k;
+      cb.checked = !!state.training.days[i][k];
+      cb.addEventListener("change", () => {
+        state.training.days[i][k] = cb.checked;
+        touch(state);
+      });
+    });
+  }
+
+  function buildRecoveryDays(container, state){
+    container.innerHTML = "";
+    
+    // Ensure rhr and hrv arrays exist
+    if (!state.health.rhr) {
+      state.health.rhr = DAYS.map(() => "");
+    }
+    if (!state.health.hrv) {
+      state.health.hrv = DAYS.map(() => "");
+    }
+    
+    DAYS.forEach((d, i) => {
+      const el = document.createElement("div");
+      el.className = "day";
+      el.style.padding = "8px";
+      el.innerHTML = `
+        <strong style="display:block; margin-bottom:6px;">${d}</strong>
+        <div style="margin-bottom:4px;">
+          <label style="font-size:10px; color:var(--muted); display:block; margin-bottom:2px;">RHR (bpm)</label>
+          <input 
+            type="number" 
+            data-rhr-i="${i}" 
+            min="30" 
+            max="120" 
+            step="1" 
+            placeholder="bpm"
+            value="${state.health.rhr[i] || ''}"
+            style="width:100%; padding:4px; border-radius:6px; border:1px solid rgba(125,211,252,.3); background:rgba(11,13,16,.65); color:rgba(125,211,252,.95); font-size:12px; text-align:center; font-family:var(--mono);"
+          />
+        </div>
+        <div>
+          <label style="font-size:10px; color:var(--muted); display:block; margin-bottom:2px;">HRV (ms)</label>
+          <input 
+            type="number" 
+            data-hrv-i="${i}" 
+            min="10" 
+            max="200" 
+            step="1" 
+            placeholder="ms"
+            value="${state.health.hrv[i] || ''}"
+            style="width:100%; padding:4px; border-radius:6px; border:1px solid rgba(134,239,172,.3); background:rgba(11,13,16,.65); color:rgba(134,239,172,.95); font-size:12px; text-align:center; font-family:var(--mono);"
+          />
+        </div>
+      `;
+      container.appendChild(el);
+    });
+    
+    // Attach RHR listeners
+    container.querySelectorAll("input[data-rhr-i]").forEach(input => {
+      const i = Number(input.dataset.rhrI);
+      input.addEventListener("input", () => {
+        state.health.rhr[i] = input.value;
+        touch(state);
+      });
+    });
+    
+    // Attach HRV listeners
+    container.querySelectorAll("input[data-hrv-i]").forEach(input => {
+      const i = Number(input.dataset.hrvI);
+      input.addEventListener("input", () => {
+        state.health.hrv[i] = input.value;
+        touch(state);
+      });
+    });
+  }
+
+
+  // ---------- app state ----------
+  let db = loadDB();
+  let autosave = (localStorage.getItem(LS_AUTOSAVE) ?? "on") === "on";
+
+  const setAutosavePill = () => {
+    $("autosavePill").innerHTML = `Autosave: <strong>${autosave ? "ON" : "OFF"}</strong>`;
+  };
+
+  const selectState = (id) => {
+    db.selectedId = id;
+    saveDB(db);
+    render();
+  };
+
+  const getSelected = () => db.states.find(s => s.id === db.selectedId) || null;
+
+  const touch = (state) => {
+    state.updatedAt = Date.now();
+    if (autosave) {
+      saveDB(db);
+      renderBadges(state);
+      showToast("Autosaved.");
+      refreshListMeta();
+    } else {
+      renderBadges(state);
+      refreshListMeta();
+      $("statusBadge").textContent = "Unsaved changes";
+      $("statusBadge").className = "badge warn mono";
+    }
+  };
+
+  // ---------- badges (schema-driven) ----------
+  function renderBadges(state) {
+    const scores = {};
+
+    // Calculate scores and update badges using SECTIONS schema
+    Object.keys(SECTIONS).forEach(key => {
+      const section = SECTIONS[key];
+      const { score, max } = section.scoring(state);
+      const badge = section.badge(score, max);
+
+      // Store normalized score for summary
+      scores[key] = max > 0 ? score / max : 0;
+
+      // Update badge DOM
+      const badgeEl = $(section.badgeId);
+      if (badgeEl) {
+        badgeEl.textContent = badge.label;
+        badgeEl.className = `badge ${badge.cls}`;
+      }
+
+      // Special handling for life section total pill
+      if (key === "life") {
+        const lifePill = $("lifeTotalPill");
+        if (lifePill) lifePill.textContent = `Total: ${score}/40 (avg ${(score / 8).toFixed(1)})`;
+      }
+    });
+
+    // Draw charts (only for sections that have them)
+    drawRHRTrend();        // health chart
+    drawIntensityTrend();  // training chart
+    drawEnduranceTrend();  // endurance score chart (primary training metric)
+    drawLifeTrend();       // life chart
+
+    // Overall status badge
+    const scoreValues = Object.values(scores);
+    const overallPct = scoreValues.reduce((a, b) => a + b, 0) / scoreValues.length;
+    const overall = overallPct >= 0.75 ? { t: "Strong", c: "good" } :
+                    overallPct >= 0.45 ? { t: "Steady", c: "warn" } :
+                    { t: "Fragile", c: "bad" };
+    $("statusBadge").textContent = `${overall.t} (${Math.round(overallPct * 100)}%)`;
+    $("statusBadge").className = `badge ${overall.c} mono`;
+
+    // Render summary row with week-over-week comparison
+    renderSummaryRow(state, scores);
+  }
+
+  function clampNum(v, min, max){
+    const n = Number(v);
+    if (!Number.isFinite(n)) return 0;
+    return Math.min(max, Math.max(min, n));
+  }
+
+  // Render summary row with week-over-week comparison (schema-driven)
+  function renderSummaryRow(state, scores) {
+    const summaryRow = $("summaryRow");
+    if (!summaryRow) return;
+
+    const prevState = getPreviousState(state);
+
+    // Clear existing badges (keep the label)
+    const existing = summaryRow.querySelectorAll(".sectionBadge");
+    existing.forEach(el => el.remove());
+
+    // Build section list from SECTIONS schema
+    Object.keys(SECTIONS)
+      .sort((a, b) => SECTIONS[a].order - SECTIONS[b].order)
+      .forEach(key => {
+        const section = SECTIONS[key];
+        const score = scores[key] || 0;
+        const badge = document.createElement("div");
+        badge.className = "sectionBadge";
+
+        const pct = Math.round(score * 100);
+        let cls = "good";
+        if (score < 0.75) cls = "warn";
+        if (score < 0.45) cls = "bad";
+
+        let deltaHTML = "";
+        if (prevState && score > 0) {
+          const prevScores = computeScoresForState(prevState);
+          const prevScore = prevScores[key];
+          if (prevScore !== undefined) {
+            const delta = computeDelta(score * 100, prevScore * 100);
+            deltaHTML = `<span class="delta ${delta.cls}">${delta.text}</span>`;
+          }
+        }
+
+        // Use short display name for summary (strip trailing words after first)
+        const shortName = section.name.split(" ")[0];
+        badge.innerHTML = `
+          <span class="emoji">${section.emoji}</span>
+          <span style="color:var(--text)">${shortName}</span>
+          <span class="badge ${cls}" style="margin-left:4px; padding:2px 6px">${pct}%</span>
+          ${deltaHTML}
+        `;
+
+        summaryRow.appendChild(badge);
+      });
+  }
+
+  // Schema-driven score computation for any state
+  function computeScoresForState(state) {
+    const scores = {};
+    Object.keys(SECTIONS).forEach(key => {
+      const { score, max } = SECTIONS[key].scoring(state);
+      scores[key] = max > 0 ? score / max : 0;
+    });
+    return scores;
+  }
+
+  // ---------- Endurance Score Chart (Primary Training Metric) ----------
+  function drawEnduranceTrend(){
+    const canvas = $("enduranceTrend");
+    if (!canvas) return;
+
+    requestAnimationFrame(() => {
+      const ctx = canvas.getContext("2d");
+      const dpr = window.devicePixelRatio || 1;
+
+      const rect = canvas.getBoundingClientRect();
+      const w = rect.width || 400;
+      const h = 160;
+
+      canvas.width = Math.floor(w * dpr);
+      canvas.height = Math.floor(h * dpr);
+      ctx.scale(dpr, dpr);
+
+      // Collect last 12 endurance scores
+      const sorted = [...db.states].sort((a,b) => {
+        const aw = (a.weekStart || "").trim();
+        const bw = (b.weekStart || "").trim();
+        if (aw && bw) return aw.localeCompare(bw);
+        return a.updatedAt - b.updatedAt;
+      }).slice(-12);
+
+      const scores = sorted.map(s => {
+        const score = Number(s.training?.enduranceScore || 0);
+        return Number.isFinite(score) ? Math.max(0, score) : 0;
+      });
+
+      const weekLabels = sorted.map(s => {
+        if (s.weekStart) {
+          const d = new Date(s.weekStart);
+          return `${d.getMonth()+1}/${d.getDate()}`;
+        }
+        return "";
+      });
+
+      // Clear with dark background
+      ctx.fillStyle = "rgba(11,13,16,.55)";
+      ctx.fillRect(0, 0, w, h);
+
+      // No data check
+      const validScores = scores.filter(v => v > 0);
+      if (validScores.length === 0){
+        ctx.fillStyle = "rgba(167,179,194,.9)";
+        ctx.font = "12px sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("Enter Endurance Score from Garmin app to track UTA 100 readiness", w/2, h/2);
+        return;
+      }
+
+      // Layout
+      const leftPad = 50;
+      const rightPad = 20;
+      const topPad = 20;
+      const bottomPad = 25;
+      const chartWidth = w - leftPad - rightPad;
+      const chartHeight = h - topPad - bottomPad;
+
+      const xStep = scores.length > 1 ? chartWidth / (scores.length - 1) : 0;
+
+      // Y-axis scale - show from ~4000 to ~10000 for endurance scores
+      const minScore = Math.min(...validScores);
+      const maxScore = Math.max(...validScores);
+      const padding = (maxScore - minScore) * 0.15 || 500;
+      let yMin = Math.floor((minScore - padding) / 500) * 500;
+      let yMax = Math.ceil((maxScore + padding) / 500) * 500;
+      yMin = Math.max(0, yMin);
+      if (yMax < 6000) yMax = 6200; // Show at least the January target
+      const yRange = yMax - yMin;
+
+      const yPos = (v) => {
+        if (yRange === 0) return topPad + chartHeight / 2;
+        const t = (v - yMin) / yRange;
+        return topPad + chartHeight - t * chartHeight;
+      };
+
+      // Draw target zones (January: 5800-6200)
+      const targetMin = 5800;
+      const targetMax = 6200;
+      if (targetMax > yMin && targetMin < yMax) {
+        ctx.fillStyle = "rgba(125,211,252,.08)";
+        const zoneTop = yPos(Math.min(targetMax, yMax));
+        const zoneBottom = yPos(Math.max(targetMin, yMin));
+        ctx.fillRect(leftPad, zoneTop, chartWidth, zoneBottom - zoneTop);
+
+        // Target zone label
+        ctx.fillStyle = "rgba(125,211,252,.5)";
+        ctx.font = "9px sans-serif";
+        ctx.textAlign = "right";
+        ctx.fillText("Jan Target", w - rightPad - 5, zoneTop + 10);
+      }
+
+      // Y-axis
+      ctx.strokeStyle = "rgba(125,211,252,.5)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(leftPad, topPad);
+      ctx.lineTo(leftPad, topPad + chartHeight);
+      ctx.stroke();
+
+      // Y-axis labels
+      ctx.fillStyle = "rgba(125,211,252,.75)";
+      ctx.font = "10px monospace";
+      ctx.textAlign = "right";
+      ctx.textBaseline = "middle";
+      const numTicks = 5;
+      for (let i = 0; i < numTicks; i++) {
+        const val = yMin + (yRange / (numTicks - 1)) * i;
+        const y = yPos(val);
+        ctx.fillText(Math.round(val).toLocaleString(), leftPad - 6, y);
+
+        // Grid line
+        ctx.strokeStyle = "rgba(36,48,65,.35)";
+        ctx.setLineDash([2, 2]);
+        ctx.beginPath();
+        ctx.moveTo(leftPad, y);
+        ctx.lineTo(w - rightPad, y);
+        ctx.stroke();
+      }
+      ctx.setLineDash([]);
+
+      // Draw gradient area under line
+      const gradient = ctx.createLinearGradient(0, topPad + chartHeight, 0, topPad);
+      gradient.addColorStop(0, "rgba(125,211,252,.05)");
+      gradient.addColorStop(1, "rgba(125,211,252,.25)");
+
+      ctx.beginPath();
+      let started = false;
+      let firstX = leftPad;
+      scores.forEach((v, i) => {
+        if (v > 0) {
+          const x = leftPad + i * xStep;
+          const y = yPos(v);
+          if (!started) {
+            ctx.moveTo(x, y);
+            firstX = x;
+            started = true;
+          } else {
+            ctx.lineTo(x, y);
+          }
+        }
+      });
+
+      // Complete the area
+      if (started) {
+        const lastValidIdx = scores.map((v, i) => v > 0 ? i : -1).filter(i => i >= 0).pop();
+        ctx.lineTo(leftPad + lastValidIdx * xStep, topPad + chartHeight);
+        ctx.lineTo(firstX, topPad + chartHeight);
+        ctx.closePath();
+        ctx.fillStyle = gradient;
+        ctx.fill();
+      }
+
+      // Draw main line
+      ctx.beginPath();
+      started = false;
+      scores.forEach((v, i) => {
+        if (v > 0) {
+          const x = leftPad + i * xStep;
+          const y = yPos(v);
+          if (!started) {
+            ctx.moveTo(x, y);
+            started = true;
+          } else {
+            ctx.lineTo(x, y);
+          }
+        }
+      });
+      ctx.strokeStyle = "rgba(125,211,252,.9)";
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      // Draw data points
+      const dataPoints = [];
+      scores.forEach((v, i) => {
+        if (v > 0) {
+          const x = leftPad + i * xStep;
+          const y = yPos(v);
+
+          // Glow
+          ctx.beginPath();
+          ctx.arc(x, y, 5, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(125,211,252,.25)";
+          ctx.fill();
+
+          // Point
+          ctx.beginPath();
+          ctx.arc(x, y, 3, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(125,211,252,1)";
+          ctx.fill();
+
+          dataPoints.push({ x, y, label: `${v.toLocaleString()}`, week: weekLabels[i] });
+        }
+      });
+
+      // X-axis week labels
+      ctx.fillStyle = "rgba(167,179,194,.6)";
+      ctx.font = "9px sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+      weekLabels.forEach((label, i) => {
+        if (label && scores[i] > 0) {
+          const x = leftPad + i * xStep;
+          ctx.fillText(label, x, topPad + chartHeight + 5);
+        }
+      });
+
+      // Update badge based on trajectory
+      updateEnduranceBadge(scores);
+
+      // Hover tooltips
+      setupChartHover(canvas, dataPoints, w, h, true);
+    });
+  }
+
+  function updateEnduranceBadge(scores) {
+    const badge = $("enduranceBadge");
+    if (!badge) return;
+
+    const validScores = scores.filter(v => v > 0);
+    if (validScores.length < 2) {
+      badge.textContent = "PRIMARY";
+      badge.className = "badge";
+      return;
+    }
+
+    const latest = validScores[validScores.length - 1];
+    const prev = validScores[validScores.length - 2];
+    const diff = latest - prev;
+
+    // January target: 5800-6200
+    if (latest >= 5800 && latest <= 6200) {
+      badge.textContent = `✓ ON TARGET (${latest.toLocaleString()})`;
+      badge.className = "badge good";
+    } else if (latest >= 5600) {
+      badge.textContent = `↗ BUILDING (${latest.toLocaleString()})`;
+      badge.className = "badge warn";
+    } else if (diff > 0) {
+      badge.textContent = `↗ +${diff} (${latest.toLocaleString()})`;
+      badge.className = "badge";
+    } else if (diff < -300) {
+      badge.textContent = `↘ ${diff} (${latest.toLocaleString()})`;
+      badge.className = "badge bad";
+    } else {
+      badge.textContent = `${latest.toLocaleString()}`;
+      badge.className = "badge";
+    }
+  }
+
+  function drawLifeTrend(){
+    const canvas = $("lifeTrend");
+    if (!canvas) return;
+    
+    // Wait for next frame to ensure canvas is properly sized
+    requestAnimationFrame(() => {
+      const ctx = canvas.getContext("2d");
+      const dpr = window.devicePixelRatio || 1;
+      
+      // Get actual rendered dimensions
+      const rect = canvas.getBoundingClientRect();
+      const w = rect.width || 400;
+      const h = 140;
+      
+      // Set canvas buffer size accounting for device pixel ratio
+      canvas.width = Math.floor(w * dpr);
+      canvas.height = Math.floor(h * dpr);
+      
+      // Scale context to match DPR
+      ctx.scale(dpr, dpr);
+
+      // Collect last 12 totals (sorted by weekStart if present, else updatedAt)
+      const sorted = [...db.states].sort((a,b) => {
+        const aw = (a.weekStart || "").trim();
+        const bw = (b.weekStart || "").trim();
+        if (aw && bw) return aw.localeCompare(bw);
+        return a.updatedAt - b.updatedAt;
+      });
+
+      const totals = sorted.map(s => {
+        const life = s.life || {};
+        const keys = ["health","fitness","work","relationships","learning","mind","appearance","joy"];
+        const vals = keys.map(k => {
+          const n = Number(life[k]);
+          return Number.isFinite(n) ? Math.min(5, Math.max(1, n)) : 3;
+        });
+        return vals.reduce((x,y)=>x+y,0);
+      }).slice(-12);
+
+      // Clear with dark background
+      ctx.fillStyle = "rgba(11,13,16,.45)";
+      ctx.fillRect(0, 0, w, h);
+
+      // No data
+      if (totals.length === 0){
+        ctx.fillStyle = "rgba(167,179,194,.9)";
+        ctx.font = "12px sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("Rate life domains to see satisfaction trend", w/2, h/2);
+        return;
+      }
+
+      // Calculate range (8 categories × 1-5 = 8-40 possible range)
+      const leftPad = 40; // Space for Y-axis labels
+      const rightPad = 12;
+      const topPad = 15;
+      const bottomPad = 12;
+      
+      const maxVal = Math.max(...totals, 1);
+      const minVal = Math.min(...totals, 40);
+      
+      // Round to nice numbers for Y-axis
+      const minY = Math.floor(Math.max(8, minVal - 2));
+      const maxY = Math.ceil(Math.min(40, maxVal + 2));
+      const rangeY = maxY - minY;
+      
+      const chartWidth = w - leftPad - rightPad;
+      const chartHeight = h - topPad - bottomPad;
+      const xStep = totals.length > 1 ? chartWidth / (totals.length - 1) : 0;
+
+      const y = (v) => {
+        if (rangeY === 0) return topPad + chartHeight / 2;
+        const t = (v - minY) / rangeY;
+        return topPad + chartHeight - t * chartHeight;
+      };
+
+      // Draw Y-axis
+      ctx.strokeStyle = "rgba(36,48,65,.75)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(leftPad, topPad);
+      ctx.lineTo(leftPad, topPad + chartHeight);
+      ctx.stroke();
+
+      // Draw Y-axis labels and grid lines
+      ctx.fillStyle = "rgba(167,179,194,.75)";
+      ctx.font = "11px monospace";
+      ctx.textAlign = "right";
+      ctx.textBaseline = "middle";
+      
+      const numTicks = Math.min(6, Math.ceil(rangeY / 4) + 1);
+      const tickStep = rangeY / Math.max(1, numTicks - 1);
+      
+      for (let i = 0; i < numTicks; i++) {
+        const val = minY + i * tickStep;
+        const yPos = y(val);
+        
+        // Label
+        ctx.fillText(Math.round(val).toString(), leftPad - 8, yPos);
+        
+        // Grid line
+        ctx.strokeStyle = i === 0 ? "rgba(36,48,65,.75)" : "rgba(36,48,65,.35)";
+        ctx.setLineDash(i === 0 ? [] : [2, 2]);
+        ctx.beginPath();
+        ctx.moveTo(leftPad, yPos);
+        ctx.lineTo(w - rightPad, yPos);
+        ctx.stroke();
+      }
+      ctx.setLineDash([]);
+
+      // Calculate average for reference line
+      const avgSatisfaction = totals.reduce((a,b)=>a+b,0) / totals.length;
+      ctx.strokeStyle = "rgba(125,211,252,.4)";
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(leftPad, y(avgSatisfaction));
+      ctx.lineTo(w - rightPad, y(avgSatisfaction));
+      ctx.stroke();
+      ctx.setLineDash([]);
+      
+      // Label for average line
+      ctx.fillStyle = "rgba(125,211,252,.75)";
+      ctx.font = "10px sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillText(`avg: ${Math.round(avgSatisfaction)}`, leftPad + 5, y(avgSatisfaction) - 6);
+
+      // Draw gradient area under line
+      const gradient = ctx.createLinearGradient(0, topPad + chartHeight, 0, topPad);
+      gradient.addColorStop(0, "rgba(125,211,252,.05)");
+      gradient.addColorStop(0.5, "rgba(125,211,252,.12)");
+      gradient.addColorStop(1, "rgba(125,211,252,.2)");
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      totals.forEach((v,i) => {
+        const x = leftPad + i*xStep;
+        const yy = y(v);
+        if (i===0) ctx.moveTo(x, yy);
+        else ctx.lineTo(x, yy);
+      });
+      ctx.lineTo(leftPad + (totals.length-1)*xStep, topPad + chartHeight);
+      ctx.lineTo(leftPad, topPad + chartHeight);
+      ctx.closePath();
+      ctx.fill();
+
+      // Draw main line
+      ctx.strokeStyle = "rgba(125,211,252,.95)";
+      ctx.lineWidth = 2;
+      ctx.lineJoin = "round";
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      totals.forEach((v,i) => {
+        const x = leftPad + i*xStep;
+        const yy = y(v);
+        if (i===0) ctx.moveTo(x, yy);
+        else ctx.lineTo(x, yy);
+      });
+      ctx.stroke();
+
+      // Draw points - color coded by satisfaction level
+      totals.forEach((v,i) => {
+        const x = leftPad + i*xStep;
+        const yy = y(v);
+        const isLast = i === totals.length - 1;
+        
+        // Outer circle
+        ctx.fillStyle = "rgba(11,13,16,.9)";
+        ctx.beginPath();
+        ctx.arc(x, yy, isLast ? 4.5 : 3, 0, Math.PI*2);
+        ctx.fill();
+        
+        // Inner circle - color by absolute satisfaction level
+        let color;
+        if (v >= 35) color = "rgba(134,239,172,.95)"; // Green: thriving (35-40)
+        else if (v >= 30) color = "rgba(125,211,252,.95)"; // Blue: solid (30-34)
+        else if (v >= 24) color = "rgba(253,230,138,.95)"; // Yellow: struggling (24-29)
+        else color = "rgba(252,165,165,.95)"; // Red: crisis (<24)
+        
+        ctx.fillStyle = isLast ? color : color.replace('.95', '.75');
+        ctx.beginPath();
+        ctx.arc(x, yy, isLast ? 3 : 2, 0, Math.PI*2);
+        ctx.fill();
+      });
+
+      // Add "score" label to Y-axis
+      ctx.save();
+      ctx.fillStyle = "rgba(167,179,194,.6)";
+      ctx.font = "10px sans-serif";
+      ctx.textAlign = "center";
+      ctx.translate(10, topPad + chartHeight / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText("score", 0, 0);
+      ctx.restore();
+
+      // Add week count at bottom right
+      ctx.fillStyle = "rgba(167,179,194,.5)";
+      ctx.font = "10px mono";
+      ctx.textAlign = "right";
+      ctx.fillText(`${totals.length} weeks`, w - rightPad - 5, h - 5);
+
+      // Store data points for hover tooltip
+      const dataPoints = totals.map((v, i) => {
+        const stateData = sorted.slice(-12)[i];
+        return {
+          x: leftPad + i * xStep,
+          y: y(v),
+          value: v,
+          week: stateData.weekStart || new Date(stateData.updatedAt).toISOString().split('T')[0],
+          label: `Score: ${v}`
+        };
+      });
+      
+      // Add hover interaction
+      setupChartHover(canvas, dataPoints, w, h);
+    });
+  }
+
+
+  function drawIntensityTrend(){
+    const canvas = $("intensityTrend");
+    if (!canvas) return;
+    
+    // Combined Intensity + Vertical chart with dual Y-axes (like RHR/HRV)
+    requestAnimationFrame(() => {
+      const ctx = canvas.getContext("2d");
+      const dpr = window.devicePixelRatio || 1;
+      
+      const rect = canvas.getBoundingClientRect();
+      const w = rect.width || 400;
+      const h = 160; // Increased height for dual axis
+      
+      canvas.width = Math.floor(w * dpr);
+      canvas.height = Math.floor(h * dpr);
+      ctx.scale(dpr, dpr);
+
+      // Collect last 12 intensity minutes and vertical floors
+      const sorted = [...db.states].sort((a,b) => {
+        const aw = (a.weekStart || "").trim();
+        const bw = (b.weekStart || "").trim();
+        if (aw && bw) return aw.localeCompare(bw);
+        return a.updatedAt - b.updatedAt;
+      }).slice(-12);
+
+      const intensities = sorted.map(s => {
+        const time = Number(s.training?.time || 0);
+        return Number.isFinite(time) ? Math.max(0, time) : 0;
+      });
+
+      const verticals = sorted.map(s => {
+        const vert = Number(s.training?.vert || 0);
+        return Number.isFinite(vert) ? Math.max(0, vert) : 0;
+      });
+
+      // Clear with dark background
+      ctx.fillStyle = "rgba(11,13,16,.45)";
+      ctx.fillRect(0, 0, w, h);
+
+      // No data check
+      if (intensities.length === 0 && verticals.length === 0){
+        ctx.fillStyle = "rgba(167,179,194,.9)";
+        ctx.font = "12px sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("Log intensity minutes and vertical to see weekly trend", w/2, h/2);
+        return;
+      }
+
+      // Layout
+      const leftPad = 45;
+      const rightPad = 45; // Room for vertical Y-axis
+      const topPad = 15;
+      const bottomPad = 12;
+      const chartWidth = w - leftPad - rightPad;
+      const chartHeight = h - topPad - bottomPad;
+
+      const maxLen = Math.max(intensities.length, verticals.length);
+      const xStep = maxLen > 1 ? chartWidth / (maxLen - 1) : 0;
+
+      // Intensity Y-axis scale (left)
+      let minIntensity = 0, maxIntensity = 100, rangeIntensity = 100;
+      if (intensities.length > 0) {
+        const intensityVals = intensities.filter(v => v > 0);
+        if (intensityVals.length > 0) {
+          maxIntensity = Math.max(...intensityVals);
+          maxIntensity = Math.ceil(maxIntensity / 50) * 50; // Round to nearest 50
+          rangeIntensity = maxIntensity - minIntensity;
+        }
+      }
+
+      const yIntensity = (v) => {
+        if (rangeIntensity === 0) return topPad + chartHeight / 2;
+        const t = v / rangeIntensity;
+        return topPad + chartHeight - t * chartHeight;
+      };
+
+      // Vertical Y-axis scale (right)
+      let minVertical = 0, maxVertical = 100, rangeVertical = 100;
+      if (verticals.length > 0) {
+        const verticalVals = verticals.filter(v => v > 0);
+        if (verticalVals.length > 0) {
+          maxVertical = Math.max(...verticalVals);
+          maxVertical = Math.ceil(maxVertical / 100) * 100; // Round to nearest 100
+          rangeVertical = maxVertical - minVertical;
+        }
+      }
+
+      const yVertical = (v) => {
+        if (rangeVertical === 0) return topPad + chartHeight / 2;
+        const t = v / rangeVertical;
+        return topPad + chartHeight - t * chartHeight;
+      };
+
+      // Draw left Y-axis (Intensity)
+      ctx.strokeStyle = "rgba(134,239,172,.5)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(leftPad, topPad);
+      ctx.lineTo(leftPad, topPad + chartHeight);
+      ctx.stroke();
+
+      // Intensity Y-axis labels
+      ctx.fillStyle = "rgba(134,239,172,.75)";
+      ctx.font = "10px monospace";
+      ctx.textAlign = "right";
+      ctx.textBaseline = "middle";
+      const numTicksIntensity = 5;
+      for (let i = 0; i < numTicksIntensity; i++) {
+        const val = minIntensity + (rangeIntensity / (numTicksIntensity - 1)) * i;
+        const yPos = yIntensity(val);
+        ctx.fillText(Math.round(val).toString(), leftPad - 6, yPos);
+      }
+
+      // Draw right Y-axis (Vertical)
+      ctx.strokeStyle = "rgba(125,211,252,.5)";
+      ctx.beginPath();
+      ctx.moveTo(w - rightPad, topPad);
+      ctx.lineTo(w - rightPad, topPad + chartHeight);
+      ctx.stroke();
+
+      // Vertical Y-axis labels
+      ctx.fillStyle = "rgba(125,211,252,.75)";
+      ctx.textAlign = "left";
+      const numTicksVertical = 5;
+      for (let i = 0; i < numTicksVertical; i++) {
+        const val = minVertical + (rangeVertical / (numTicksVertical - 1)) * i;
+        const yPos = yVertical(val);
+        ctx.fillText(Math.round(val).toString(), w - rightPad + 6, yPos);
+      }
+
+      // Grid lines (subtle)
+      ctx.strokeStyle = "rgba(36,48,65,.35)";
+      ctx.setLineDash([2, 2]);
+      for (let i = 0; i < numTicksIntensity; i++) {
+        const val = minIntensity + (rangeIntensity / (numTicksIntensity - 1)) * i;
+        const yPos = yIntensity(val);
+        ctx.beginPath();
+        ctx.moveTo(leftPad, yPos);
+        ctx.lineTo(w - rightPad, yPos);
+        ctx.stroke();
+      }
+      ctx.setLineDash([]);
+
+      // Draw Intensity (solid line, green)
+      if (intensities.length > 0) {
+        // Draw gradient area under line
+        const gradient = ctx.createLinearGradient(0, topPad + chartHeight, 0, topPad);
+        gradient.addColorStop(0, "rgba(134,239,172,.05)");
+        gradient.addColorStop(0.5, "rgba(134,239,172,.12)");
+        gradient.addColorStop(1, "rgba(134,239,172,.2)");
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        intensities.forEach((v,i) => {
+          const x = leftPad + i*xStep;
+          const y = yIntensity(v);
+          if (i===0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+        ctx.lineTo(leftPad + (intensities.length-1)*xStep, topPad + chartHeight);
+        ctx.lineTo(leftPad, topPad + chartHeight);
+        ctx.closePath();
+        ctx.fill();
+
+        // Draw line
+        ctx.strokeStyle = "rgba(134,239,172,.9)";
+        ctx.lineWidth = 2;
+        ctx.lineJoin = "round";
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        intensities.forEach((v,i) => {
+          const x = leftPad + i*xStep;
+          const y = yIntensity(v);
+          if (i===0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+
+        // Draw Intensity points
+        intensities.forEach((v,i) => {
+          const x = leftPad + i*xStep;
+          const y = yIntensity(v);
+          const isLast = i === intensities.length - 1;
+          ctx.fillStyle = "rgba(11,13,16,.9)";
+          ctx.beginPath();
+          ctx.arc(x, y, isLast ? 3.5 : 3, 0, Math.PI*2);
+          ctx.fill();
+          ctx.fillStyle = "rgba(134,239,172,.9)";
+          ctx.beginPath();
+          ctx.arc(x, y, isLast ? 2.5 : 2, 0, Math.PI*2);
+          ctx.fill();
+        });
+      }
+
+      // Draw Vertical (dotted line, blue)
+      if (verticals.length > 0) {
+        ctx.strokeStyle = "rgba(125,211,252,.9)";
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 3]);
+        ctx.lineJoin = "round";
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        verticals.forEach((v,i) => {
+          const x = leftPad + i*xStep;
+          const y = yVertical(v);
+          if (i===0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Draw Vertical points
+        verticals.forEach((v,i) => {
+          const x = leftPad + i*xStep;
+          const y = yVertical(v);
+          const isLast = i === verticals.length - 1;
+          ctx.fillStyle = "rgba(11,13,16,.9)";
+          ctx.beginPath();
+          ctx.arc(x, y, isLast ? 3.5 : 3, 0, Math.PI*2);
+          ctx.fill();
+          ctx.fillStyle = "rgba(125,211,252,.9)";
+          ctx.beginPath();
+          ctx.arc(x, y, isLast ? 2.5 : 2, 0, Math.PI*2);
+          ctx.fill();
+        });
+      }
+
+      // Add "min" label to left Y-axis
+      ctx.save();
+      ctx.fillStyle = "rgba(134,239,172,.75)";
+      ctx.font = "10px sans-serif";
+      ctx.textAlign = "center";
+      ctx.translate(12, topPad + chartHeight / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText("min", 0, 0);
+      ctx.restore();
+
+      // Add "floors" label to right Y-axis
+      ctx.save();
+      ctx.fillStyle = "rgba(125,211,252,.75)";
+      ctx.font = "10px sans-serif";
+      ctx.textAlign = "center";
+      ctx.translate(w - 12, topPad + chartHeight / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText("floors", 0, 0);
+      ctx.restore();
+
+      // Add week count at bottom right
+      ctx.fillStyle = "rgba(167,179,194,.5)";
+      ctx.font = "10px mono";
+      ctx.textAlign = "right";
+      ctx.fillText(`${intensities.length} weeks`, w - rightPad - 5, h - 5);
+
+      // Store data points for hover tooltip (combined data)
+      const dataPoints = intensities.map((v, i) => {
+        const stateData = sorted[i];
+        const vertVal = verticals[i] || 0;
+        return {
+          x: leftPad + i * xStep,
+          y: yIntensity(v),
+          value: v,
+          verticalValue: vertVal,
+          week: stateData.weekStart || new Date(stateData.updatedAt).toISOString().split('T')[0],
+          label: `${v} min · ${vertVal} floors`
+        };
+      });
+      
+      // Add hover interaction
+      setupChartHover(canvas, dataPoints, w, h);
+    });
+  }
+
+
+  function drawRHRTrend(){
+    const canvas = $("rhrTrend");
+    if (!canvas) return;
+    
+    // Combined RHR + HRV chart with dual Y-axes
+    requestAnimationFrame(() => {
+      const ctx = canvas.getContext("2d");
+      const dpr = window.devicePixelRatio || 1;
+      
+      const rect = canvas.getBoundingClientRect();
+      const w = rect.width || 400;
+      const h = 160; // Increased height for dual axis
+      
+      canvas.width = Math.floor(w * dpr);
+      canvas.height = Math.floor(h * dpr);
+      ctx.scale(dpr, dpr);
+
+      // Collect data from last 12 weeks
+      const sorted = [...db.states].sort((a,b) => {
+        const aw = (a.weekStart || "").trim();
+        const bw = (b.weekStart || "").trim();
+        if (aw && bw) return aw.localeCompare(bw);
+        return a.updatedAt - b.updatedAt;
+      }).slice(-12);
+
+      // Collect RHR data (daily)
+      const dailyRHRs = [];
+      const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+      sorted.forEach(state => {
+        const rhrs = state.health?.rhr || [];
+        rhrs.forEach((rhr, dayOfWeek) => {
+          const val = Number(rhr);
+          if (val > 0 && Number.isFinite(val)) {
+            dailyRHRs.push({
+              value: val,
+              week: state.weekStart || new Date(state.updatedAt).toISOString().split('T')[0],
+              day: dayNames[dayOfWeek]
+            });
+          }
+        });
+      });
+
+      // Collect HRV data and calculate 7-day rolling average
+      const dailyHRVs = [];
+      sorted.forEach(state => {
+        const hrvs = state.health?.hrv || [];
+        hrvs.forEach((hrv, dayOfWeek) => {
+          const val = Number(hrv);
+          if (val > 0 && Number.isFinite(val)) {
+            dailyHRVs.push({
+              value: val,
+              week: state.weekStart || new Date(state.updatedAt).toISOString().split('T')[0],
+              day: dayNames[dayOfWeek]
+            });
+          }
+        });
+      });
+
+      // Calculate HRV rolling averages
+      const hrvRollingAvgs = [];
+      for (let i = 0; i < dailyHRVs.length; i++) {
+        const start = Math.max(0, i - 6);
+        const window = dailyHRVs.slice(start, i + 1);
+        const avg = window.reduce((sum, d) => sum + d.value, 0) / window.length;
+        hrvRollingAvgs.push({
+          value: avg,
+          rawValue: dailyHRVs[i].value,
+          week: dailyHRVs[i].week,
+          day: dailyHRVs[i].day
+        });
+      }
+
+      // Clear background
+      ctx.fillStyle = "rgba(11,13,16,.45)";
+      ctx.fillRect(0, 0, w, h);
+
+      // No data check
+      if (dailyRHRs.length === 0 && hrvRollingAvgs.length === 0){
+        ctx.fillStyle = "rgba(167,179,194,.9)";
+        ctx.font = "12px sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("Start tracking RHR and HRV", w/2, h/2);
+        return;
+      }
+
+      // Layout
+      const leftPad = 45;
+      const rightPad = 45; // Room for HRV Y-axis
+      const topPad = 15;
+      const bottomPad = 12;
+      const chartWidth = w - leftPad - rightPad;
+      const chartHeight = h - topPad - bottomPad;
+
+      // Determine max data length for x-axis
+      const maxLen = Math.max(dailyRHRs.length, hrvRollingAvgs.length);
+      const xStep = maxLen > 1 ? chartWidth / (maxLen - 1) : 0;
+
+      // RHR Y-axis scale
+      let minRHR = 40, maxRHR = 100, rangeRHR = 60;
+      if (dailyRHRs.length > 0) {
+        const rhrVals = dailyRHRs.map(d => d.value);
+        minRHR = Math.max(40, Math.min(...rhrVals));
+        maxRHR = Math.max(...rhrVals);
+        minRHR = Math.floor((minRHR - 5) / 5) * 5;
+        maxRHR = Math.ceil((maxRHR + 5) / 5) * 5;
+        rangeRHR = maxRHR - minRHR;
+      }
+
+      const yRHR = (v) => {
+        if (rangeRHR === 0) return topPad + chartHeight / 2;
+        const t = (v - minRHR) / rangeRHR;
+        return topPad + chartHeight - t * chartHeight;
+      };
+
+      // HRV Y-axis scale
+      let minHRV = 20, maxHRV = 100, rangeHRV = 80;
+      if (hrvRollingAvgs.length > 0) {
+        const hrvVals = hrvRollingAvgs.map(d => d.value);
+        minHRV = Math.max(10, Math.min(...hrvVals));
+        maxHRV = Math.max(...hrvVals);
+        minHRV = Math.floor((minHRV - 5) / 5) * 5;
+        maxHRV = Math.ceil((maxHRV + 5) / 5) * 5;
+        rangeHRV = maxHRV - minHRV;
+      }
+
+      const yHRV = (v) => {
+        if (rangeHRV === 0) return topPad + chartHeight / 2;
+        const t = (v - minHRV) / rangeHRV;
+        return topPad + chartHeight - t * chartHeight;
+      };
+
+      // Draw left Y-axis (RHR)
+      ctx.strokeStyle = "rgba(125,211,252,.5)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(leftPad, topPad);
+      ctx.lineTo(leftPad, topPad + chartHeight);
+      ctx.stroke();
+
+      // RHR Y-axis labels
+      ctx.fillStyle = "rgba(125,211,252,.75)";
+      ctx.font = "10px monospace";
+      ctx.textAlign = "right";
+      ctx.textBaseline = "middle";
+      const numTicksRHR = 5;
+      for (let i = 0; i < numTicksRHR; i++) {
+        const val = minRHR + (rangeRHR / (numTicksRHR - 1)) * i;
+        const yPos = yRHR(val);
+        ctx.fillText(Math.round(val).toString(), leftPad - 6, yPos);
+      }
+
+      // Draw right Y-axis (HRV)
+      ctx.strokeStyle = "rgba(134,239,172,.5)";
+      ctx.beginPath();
+      ctx.moveTo(w - rightPad, topPad);
+      ctx.lineTo(w - rightPad, topPad + chartHeight);
+      ctx.stroke();
+
+      // HRV Y-axis labels
+      ctx.fillStyle = "rgba(134,239,172,.75)";
+      ctx.textAlign = "left";
+      const numTicksHRV = 5;
+      for (let i = 0; i < numTicksHRV; i++) {
+        const val = minHRV + (rangeHRV / (numTicksHRV - 1)) * i;
+        const yPos = yHRV(val);
+        ctx.fillText(Math.round(val).toString(), w - rightPad + 6, yPos);
+      }
+
+      // Grid lines (subtle)
+      ctx.strokeStyle = "rgba(36,48,65,.35)";
+      ctx.setLineDash([2, 2]);
+      for (let i = 0; i < numTicksRHR; i++) {
+        const val = minRHR + (rangeRHR / (numTicksRHR - 1)) * i;
+        const yPos = yRHR(val);
+        ctx.beginPath();
+        ctx.moveTo(leftPad, yPos);
+        ctx.lineTo(w - rightPad, yPos);
+        ctx.stroke();
+      }
+      ctx.setLineDash([]);
+
+      // Draw RHR (solid line, blue)
+      if (dailyRHRs.length > 0) {
+        ctx.strokeStyle = "rgba(125,211,252,.9)";
+        ctx.lineWidth = 2;
+        ctx.lineJoin = "round";
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        dailyRHRs.forEach((d,i) => {
+          const x = leftPad + i*xStep;
+          const y = yRHR(d.value);
+          if (i===0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+
+        // Draw RHR points
+        dailyRHRs.forEach((d,i) => {
+          const x = leftPad + i*xStep;
+          const y = yRHR(d.value);
+          ctx.fillStyle = "rgba(11,13,16,.9)";
+          ctx.beginPath();
+          ctx.arc(x, y, 3, 0, Math.PI*2);
+          ctx.fill();
+          ctx.fillStyle = "rgba(125,211,252,.9)";
+          ctx.beginPath();
+          ctx.arc(x, y, 2, 0, Math.PI*2);
+          ctx.fill();
+        });
+      }
+
+      // Draw HRV (dotted line, green) - 7-day rolling average
+      if (hrvRollingAvgs.length > 0) {
+        ctx.strokeStyle = "rgba(134,239,172,.9)";
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 3]);
+        ctx.lineJoin = "round";
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        hrvRollingAvgs.forEach((d,i) => {
+          const x = leftPad + i*xStep;
+          const y = yHRV(d.value);
+          if (i===0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Draw HRV points
+        hrvRollingAvgs.forEach((d,i) => {
+          const x = leftPad + i*xStep;
+          const y = yHRV(d.value);
+          ctx.fillStyle = "rgba(11,13,16,.9)";
+          ctx.beginPath();
+          ctx.arc(x, y, 3, 0, Math.PI*2);
+          ctx.fill();
+          ctx.fillStyle = "rgba(134,239,172,.9)";
+          ctx.beginPath();
+          ctx.arc(x, y, 2, 0, Math.PI*2);
+          ctx.fill();
+        });
+      }
+
+      // Y-axis labels
+      ctx.save();
+      ctx.fillStyle = "rgba(125,211,252,.7)";
+      ctx.font = "10px sans-serif";
+      ctx.textAlign = "center";
+      ctx.translate(12, topPad + chartHeight / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText("RHR (bpm)", 0, 0);
+      ctx.restore();
+
+      ctx.save();
+      ctx.fillStyle = "rgba(134,239,172,.7)";
+      ctx.translate(w - 12, topPad + chartHeight / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText("HRV 7d (ms)", 0, 0);
+      ctx.restore();
+
+      // Legend at bottom
+      ctx.fillStyle = "rgba(167,179,194,.5)";
+      ctx.font = "10px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(`RHR: ${dailyRHRs.length} days  |  HRV: ${hrvRollingAvgs.length} days (7d avg)`, w/2, h - 3);
+
+      // Hover tooltips - combine both datasets
+      const allDataPoints = [];
+      dailyRHRs.forEach((d,i) => {
+        allDataPoints.push({
+          x: leftPad + i*xStep,
+          y: yRHR(d.value),
+          value: d.value,
+          week: d.week,
+          day: d.day,
+          label: `RHR: ${d.value} bpm`,
+          type: 'rhr'
+        });
+      });
+      hrvRollingAvgs.forEach((d,i) => {
+        allDataPoints.push({
+          x: leftPad + i*xStep,
+          y: yHRV(d.value),
+          value: Math.round(d.value),
+          week: d.week,
+          day: d.day,
+          label: `HRV: ${Math.round(d.value)} ms (7d) | ${Math.round(d.rawValue)} raw`,
+          type: 'hrv'
+        });
+      });
+
+      setupChartHover(canvas, allDataPoints, w, h, true);
+    });
+  }
+
+  // ---------- Chart hover tooltips ----------
+  function setupChartHover(canvas, dataPoints, canvasWidth, canvasHeight, showDay = false) {
+    // Remove any existing listeners
+    const oldListener = canvas._hoverListener;
+    if (oldListener) {
+      canvas.removeEventListener('mousemove', oldListener);
+      canvas.removeEventListener('mouseleave', oldListener);
+    }
+
+    let tooltip = document.getElementById('chartTooltip');
+    if (!tooltip) {
+      tooltip = document.createElement('div');
+      tooltip.id = 'chartTooltip';
+      tooltip.style.cssText = `
+        position: fixed;
+        background: rgba(11,13,16,.95);
+        border: 1px solid rgba(125,211,252,.5);
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-size: 12px;
+        font-family: monospace;
+        color: rgba(232,238,246,.95);
+        pointer-events: none;
+        z-index: 10000;
+        display: none;
+        box-shadow: 0 4px 12px rgba(0,0,0,.5);
+      `;
+      document.body.appendChild(tooltip);
+    }
+
+    const handleMouseMove = (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
+      // Find nearest data point within 15px
+      let nearest = null;
+      let minDist = 15;
+      
+      dataPoints.forEach(point => {
+        const dist = Math.sqrt(Math.pow(mouseX - point.x, 2) + Math.pow(mouseY - point.y, 2));
+        if (dist < minDist) {
+          minDist = dist;
+          nearest = point;
+        }
+      });
+
+      if (nearest) {
+        // Show tooltip
+        const weekLabel = showDay ? `Week: ${nearest.week} (${nearest.day})` : `Week: ${nearest.week}`;
+        tooltip.innerHTML = `<div style="font-weight: bold; margin-bottom: 2px;">${weekLabel}</div><div>${nearest.label}</div>`;
+        tooltip.style.display = 'block';
+        tooltip.style.left = (e.clientX + 15) + 'px';
+        tooltip.style.top = (e.clientY - 40) + 'px';
+      } else {
+        tooltip.style.display = 'none';
+      }
+    };
+
+    const handleMouseLeave = () => {
+      tooltip.style.display = 'none';
+    };
+
+    canvas.addEventListener('mousemove', handleMouseMove);
+    canvas.addEventListener('mouseleave', handleMouseLeave);
+    canvas._hoverListener = handleMouseMove; // Store for cleanup
+  }
+
+
+  // ---------- list rendering ----------
+  function refreshListMeta(){
+    $("stateCountBadge").textContent = String(db.states.length);
+    const list = $("stateList");
+    const items = Array.from(list.querySelectorAll(".list-item"));
+    items.forEach(it => {
+      const id = it.dataset.id;
+      const s = db.states.find(x => x.id === id);
+      if (!s) return;
+      const sub = it.querySelector(".sub");
+      sub.textContent = `Updated: ${fmtDateTime(s.updatedAt)}`;
+    });
+  }
+
+  function renderList(){
+    const list = $("stateList");
+    list.innerHTML = "";
+    const q = $("stateSearch").value.trim().toLowerCase();
+    const states = [...db.states].sort((a,b)=>b.updatedAt - a.updatedAt).filter(s => {
+      if (!q) return true;
+      return (s.title || "").toLowerCase().includes(q) || (s.overallIntent || "").toLowerCase().includes(q);
+    });
+
+    if (states.length === 0){
+      const empty = document.createElement("div");
+      empty.className = "small muted";
+      empty.textContent = db.states.length ? "No matches." : "No states yet. Create one.";
+      list.appendChild(empty);
+      return;
+    }
+
+    states.forEach(s => {
+      const item = document.createElement("div");
+      item.className = "list-item" + (s.id === db.selectedId ? " active" : "");
+      item.dataset.id = s.id;
+
+      const title = s.title?.trim() ? s.title.trim() : "(Untitled state)";
+      const week = s.weekStart?.trim() ? ` · ${s.weekStart.trim()}` : "";
+      item.innerHTML = `
+        <div class="meta">
+          <div class="name">${escapeHtml(title)} <span class="mono muted">${escapeHtml(week)}</span></div>
+          <div class="sub">Updated: ${fmtDateTime(s.updatedAt)}</div>
+        </div>
+        <div class="right">
+          <span class="badge mono">${shortId(s.id)}</span>
+          <button class="iconbtn" data-del="1" title="Delete this state">Delete</button>
+        </div>
+      `;
+
+      item.addEventListener("click", (e) => {
+        if (e.target && e.target.dataset && e.target.dataset.del) return;
+        selectState(s.id);
+      });
+
+      item.querySelector("button[data-del]").addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (!confirm("Delete this state? This cannot be undone.")) return;
+        db.states = db.states.filter(x => x.id !== s.id);
+        if (db.selectedId === s.id) db.selectedId = db.states[0]?.id ?? null;
+        saveDB(db);
+        showToast("State deleted.");
+        render();
+      });
+
+      list.appendChild(item);
+    });
+  }
+
+  function shortId(id){ return (id || "").split("-")[0] || "—"; }
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  // ---------- editor binding (schema-driven) ----------
+  function bindEditor(state) {
+    $("editor").style.display = "block";
+    $("emptyState").style.display = "none";
+    $("editorTitle").textContent = state.title?.trim() ? state.title.trim() : "Editing state";
+    $("editorSubtitle").textContent = `Last updated: ${fmtDateTime(state.updatedAt)} · Created: ${fmtDateTime(state.createdAt)}`;
+
+    // Binding helpers
+    const bindInput = (id, path) => {
+      const el = $(id);
+      if (!el) return;
+      el.value = getPath(state, path) ?? "";
+      const handler = () => { setPath(state, path, el.value); touch(state); };
+      el.oninput = handler;
+      el.onchange = handler;
+      el.onblur = handler;
+    };
+
+    const bindSelect = (id, path) => {
+      const el = $(id);
+      if (!el) return;
+      el.value = getPath(state, path) ?? "";
+      const handler = () => { setPath(state, path, el.value); touch(state); };
+      el.onchange = handler;
+      el.onblur = handler;
+    };
+
+    const bindCheckbox = (id, path) => {
+      const el = $(id);
+      if (!el) return;
+      el.checked = !!getPath(state, path);
+      el.onchange = () => { setPath(state, path, el.checked); touch(state); };
+    };
+
+    // Bind metadata fields
+    bindInput("title", "title");
+    bindInput("weekStart", "weekStart");
+    bindInput("overallIntent", "overallIntent");
+
+    // Ensure goals exist with defaults from schema
+    if (!state.goals) {
+      state.goals = {};
+      Object.keys(SECTIONS).forEach(key => {
+        state.goals[key] = SECTIONS[key].defaultGoal;
+      });
+    }
+
+    // Bind goals using schema
+    Object.keys(SECTIONS).forEach(key => {
+      const section = SECTIONS[key];
+      if (section.goalId) {
+        bindInput(section.goalId, `goals.${key}`);
+      }
+    });
+
+    // Bind all section fields using SECTIONS.bindings
+    Object.keys(SECTIONS).forEach(key => {
+      const section = SECTIONS[key];
+
+      // Ensure section data exists
+      if (!state[key]) {
+        state[key] = section.defaultData();
+      }
+
+      // Bind each field from the bindings config
+      (section.bindings || []).forEach(binding => {
+        switch (binding.type) {
+          case "input":
+            bindInput(binding.id, binding.path);
+            break;
+          case "select":
+            bindSelect(binding.id, binding.path);
+            break;
+          case "checkbox":
+            bindCheckbox(binding.id, binding.path);
+            break;
+        }
+      });
+
+      // Call any special builders (for health days grid, recovery days, etc.)
+      if (section.builders) {
+        section.builders.forEach(builderName => {
+          if (builderName === "buildHealthDays") {
+            buildHealthDays($("healthDays"), state);
+          } else if (builderName === "buildRecoveryDays") {
+            buildRecoveryDays($("recoveryDays"), state);
+          }
+        });
+      }
+    });
+
+    renderBadges(state);
+    $("statusBadge").className = `badge ${autosave ? "good" : "warn"} mono`;
+
+    // Save button
+    $("saveBtn").onclick = () => {
+      state.updatedAt = Date.now();
+      saveDB(db);
+      showToast("Saved.");
+      render();
+    };
+
+    // Delete button
+    $("deleteStateBtn").onclick = () => {
+      if (!confirm("Delete this state? This cannot be undone.")) return;
+      db.states = db.states.filter(x => x.id !== state.id);
+      db.selectedId = db.states[0]?.id ?? null;
+      saveDB(db);
+      showToast("State deleted.");
+      render();
+    };
+  }
+
+  // ---------- actions ----------
+  function createState(fromState=null, options={}){
+    const s = fromState ? structuredClone(fromState) : defaultState();
+    s.id = crypto.randomUUID();
+    const now = Date.now();
+    s.createdAt = now;
+    s.updatedAt = now;
+    
+    if (options.copyPrevious) {
+      // Copy from previous week with smart defaults
+      const nextDate = getNextWeekDate();
+      s.title = nextDate ? `Week of ${nextDate}` : "New week";
+      s.weekStart = nextDate;
+      s.overallIntent = ""; // Clear intent for new week
+      
+      // Keep goals/targets but reset tracking data
+      s.health.notes = "";
+      s.health.days = DAYS.map(() => ({rehab:false, aerobic:false, strength:false, sleep:false}));
+      s.health.rhr = DAYS.map(() => ""); // Reset daily RHR tracking
+      s.health.hrv = DAYS.map(() => ""); // Reset daily HRV tracking
+      s.training.notes = "";
+      s.learn.arabicSpeakingDays = "";
+      s.learn.chaptersRead = "";
+      s.learn.notes = "";
+      s.work.meetings = "";
+      s.work.intros = "";
+      s.work.followups = "";
+      s.work.crmUpdated = "no";
+      s.work.wins = "";
+      s.work.oneSerious = "";
+      s.rel.checkins = "";
+      s.rel.oneOnOnes = "";
+      s.rel.coreTouched = "";
+      s.rel.weeklySocial = "no";
+      s.training.weekly = {long:false, hills:false, strength:false, easy:false};
+      s.output = {wrote:false, project:false, admin:false, shipped:""};
+      s.review = {keptPromises: "most", held: "", slipped: "", nextAdjust: ""};
+      // Life scores reset to 3
+      s.life = {health:"3",fitness:"3",work:"3",relationships:"3",learning:"3",mind:"3",appearance:"3",joy:"3"};
+    } else if (fromState){
+      s.title = (fromState.title?.trim() ? fromState.title.trim() : "State") + " (copy)";
+    } else if (!s.title) {
+      s.title = "New state";
+    }
+    
+    db.states.unshift(s);
+    db.selectedId = s.id;
+    saveDB(db);
+    
+    const msg = options.copyPrevious ? "New week created from previous!" : "State created.";
+    showToast(msg);
+    render();
+  }
+
+  function copyPreviousWeek(){
+    const sorted = [...db.states].sort((a,b) => {
+      const aw = (a.weekStart || "").trim();
+      const bw = (b.weekStart || "").trim();
+      if (aw && bw) return bw.localeCompare(aw);
+      return b.updatedAt - a.updatedAt;
+    });
+    
+    if (sorted.length === 0) {
+      showToast("No previous week to copy from.");
+      return createState(null);
+    }
+    
+    const prevState = sorted[0];
+    const prevScore = computeScoresForState(prevState);
+    const avgScore = Object.values(prevScore).reduce((a,b)=>a+b,0) / Object.values(prevScore).length;
+    const contextMsg = `Last week: ${Math.round(avgScore*100)}% avg`;
+    
+    showToast(contextMsg, 2500);
+    createState(prevState, {copyPrevious: true});
+  }
+
+  function wipeAll(){
+    if (!confirm("Wipe ALL data from this browser (all states)? This cannot be undone.")) return;
+    localStorage.removeItem(LS_KEY);
+    db = { states: [], selectedId: null };
+    showToast("All data wiped.");
+    render();
+  }
+
+  // export/import
+  function exportJSON(){
+    const payload = JSON.stringify(db, null, 2);
+    const blob = new Blob([payload], {type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    
+    // Add date to filename
+    const date = new Date().toISOString().split('T')[0];
+    a.download = `commitments-dashboard-${date}.json`;
+    
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    
+    // Track last export time
+    localStorage.setItem(LS_LAST_EXPORT, Date.now().toString());
+    showToast("Exported JSON with date.");
+  }
+
+  function exportCSV(){
+    // Build CSV from all states
+    const rows = [
+      ["Week Start", "Title", "Created", "Updated", "Health %", "Training %", "Endurance Score", "Study %", "Capital %", "Relationships %", "Life Score", "Output %", "Review %", "Overall %"]
+    ];
+
+    db.states.forEach(state => {
+      const scores = computeScoresForState(state);
+      const overall = Object.values(scores).reduce((a,b)=>a+b,0) / Object.values(scores).length;
+      const life = state.life || {};
+      const lifeKeys = ["health","fitness","work","relationships","learning","mind","appearance","joy"];
+      const lifeTotal = lifeKeys.map(k => {
+        const n = Number(life[k]);
+        return Number.isFinite(n) ? Math.min(5, Math.max(1, n)) : 3;
+      }).reduce((a,c)=>a+c,0);
+
+      const enduranceScore = Number(state.training?.enduranceScore || 0);
+
+      rows.push([
+        state.weekStart || "",
+        state.title || "",
+        new Date(state.createdAt).toISOString().split('T')[0],
+        new Date(state.updatedAt).toISOString().split('T')[0],
+        Math.round(scores.health * 100),
+        Math.round(scores.training * 100),
+        enduranceScore > 0 ? enduranceScore : "",
+        Math.round(scores.learn * 100),
+        Math.round(scores.work * 100),
+        Math.round(scores.rel * 100),
+        lifeTotal,
+        Math.round(scores.output * 100),
+        Math.round(scores.review * 100),
+        Math.round(overall * 100)
+      ]);
+    });
+    
+    const csv = rows.map(row => row.map(cell => `"${cell}"`).join(",")).join("\n");
+    const blob = new Blob([csv], {type:"text/csv"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    const date = new Date().toISOString().split('T')[0];
+    a.download = `commitments-dashboard-${date}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    showToast("Exported CSV for spreadsheet analysis.");
+  }
+
+  function importJSON(){
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "application/json";
+    input.onchange = async () => {
+      const file = input.files?.[0];
+      if (!file) return;
+      const text = await file.text();
+      try{
+        const incoming = JSON.parse(text);
+        if (!incoming.states || !Array.isArray(incoming.states)) throw new Error("Invalid format");
+        db = {
+          states: incoming.states,
+          selectedId: incoming.selectedId ?? (incoming.states[0]?.id ?? null),
+        };
+        saveDB(db);
+        showToast("Imported JSON.");
+        render();
+      }catch(e){
+        alert("Import failed: " + e.message);
+      }
+    };
+    input.click();
+  }
+
+  // ---------- render ----------
+  function render(){
+    setAutosavePill();
+    $("stateCountBadge").textContent = String(db.states.length);
+    renderList();
+
+    const state = getSelected();
+    if (!state){
+      $("editor").style.display = "none";
+      $("emptyState").style.display = "block";
+      $("editorTitle").textContent = "No state selected";
+      $("editorSubtitle").textContent = "Create a state to begin tracking your commitments.";
+      $("statusBadge").textContent = "—";
+      $("statusBadge").className = "badge mono";
+      return;
+    }
+    bindEditor(state);
+    // update header title
+    $("editorTitle").textContent = state.title?.trim() ? state.title.trim() : "Editing state";
+    $("editorSubtitle").textContent = `Last updated: ${fmtDateTime(state.updatedAt)} · Created: ${fmtDateTime(state.createdAt)}`;
+    if (!autosave) {
+      $("statusBadge").textContent = "Autosave OFF";
+      $("statusBadge").className = "badge warn mono";
+    }
+  }
+
+  // ---------- time pill ----------
+  function tick(){
+    const d = new Date();
+    nowPill.textContent = d.toLocaleString(undefined, {weekday:"short", year:"numeric", month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit"});
+  }
+  setInterval(tick, 1000 * 10);
+  tick();
+
+  // ---------- wire buttons ----------
+  $("newStateBtn").onclick = () => createState(null);
+  $("createFirstBtn").onclick = () => createState(null);
+  $("copyPrevWeekBtn").onclick = copyPreviousWeek;
+  $("duplicateBtn").onclick = () => {
+    const s = getSelected();
+    if (!s) return createState(null);
+    createState(s);
+  };
+
+  $("wipeAllBtn").onclick = wipeAll;
+  $("exportBtn").onclick = () => {
+    // Show menu for JSON or CSV
+    if (confirm("Export as JSON (click OK) or CSV for spreadsheet (click Cancel)?")) {
+      exportJSON();
+    } else {
+      exportCSV();
+    }
+  };
+  $("importBtn").onclick = importJSON;
+
+  $("toggleAutosaveBtn").onclick = () => {
+    autosave = !autosave;
+    localStorage.setItem(LS_AUTOSAVE, autosave ? "on" : "off");
+    setAutosavePill();
+    showToast(`Autosave ${autosave ? "ON" : "OFF"}.`);
+    const s = getSelected();
+    if (s) renderBadges(s);
+  };
+
+  // ---------- LifeOS Auto-Sync (HTTP Server) ----------
+  const LIFEOS_SYNC_URL = "http://localhost:3456/sync";
+  const LIFEOS_HEALTH_URL = "http://localhost:3456/health";
+  const LS_LIFEOS_LAST_SYNC = "lifeos_last_sync";
+  let lifeosServerOnline = false;
+
+  function updateLifeosStatusPill() {
+    const lastSync = localStorage.getItem(LS_LIFEOS_LAST_SYNC);
+    const pill = $("lifeosStatusPill");
+
+    if (lifeosServerOnline) {
+      const ago = lastSync ? getTimeAgo(Number(lastSync)) : "never";
+      pill.innerHTML = `LifeOS: <strong>LIVE</strong> (${ago})`;
+      pill.style.background = "var(--good)";
+      pill.style.color = "#000";
+    } else if (lastSync) {
+      const ago = getTimeAgo(Number(lastSync));
+      pill.innerHTML = `LifeOS: <strong>OFFLINE</strong> (${ago})`;
+      pill.style.background = "var(--warn)";
+      pill.style.color = "#000";
+    } else {
+      pill.innerHTML = `LifeOS: <strong>OFFLINE</strong>`;
+      pill.style.background = "var(--warn)";
+      pill.style.color = "#000";
+    }
+  }
+
+  function getTimeAgo(timestamp) {
+    const mins = Math.floor((Date.now() - timestamp) / 60000);
+    if (mins < 1) return "just now";
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    const days = Math.floor(hrs / 24);
+    return `${days}d ago`;
+  }
+
+  async function checkLifeosServer() {
+    try {
+      const response = await fetch(LIFEOS_HEALTH_URL, { method: "GET" });
+      if (response.ok) {
+        lifeosServerOnline = true;
+        updateLifeosStatusPill();
+        return true;
+      }
+    } catch (e) {
+      // Server not running
+    }
+    lifeosServerOnline = false;
+    updateLifeosStatusPill();
+    return false;
+  }
+
+  async function startLifeosServer() {
+    showToast("Start sync server: python3 lifeos/sync-server.py");
+    // Copy command to clipboard for convenience
+    try {
+      await navigator.clipboard.writeText("cd ~/Documents/dashboard && python3 lifeos/sync-server.py");
+      showToast("Command copied to clipboard. Paste in terminal.", 3000);
+    } catch (e) {
+      showToast("Run: python3 lifeos/sync-server.py", 3000);
+    }
+  }
+
+  // Debounced sync - only syncs after 3 seconds of inactivity
+  let syncTimeout = null;
+  const SYNC_DEBOUNCE_MS = 3000;
+
+  async function syncToLifeos() {
+    // Clear any pending sync
+    if (syncTimeout) clearTimeout(syncTimeout);
+
+    // Schedule sync with debounce
+    syncTimeout = setTimeout(async () => {
+      await _doSyncToLifeos();
+    }, SYNC_DEBOUNCE_MS);
+  }
+
+  // Force immediate sync (bypasses debounce)
+  async function forceSyncToLifeos() {
+    if (syncTimeout) clearTimeout(syncTimeout);
+    await _doSyncToLifeos();
+  }
+
+  async function _doSyncToLifeos() {
+    try {
+      const response = await fetch(LIFEOS_SYNC_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(db)
+      });
+
+      if (response.ok) {
+        lifeosServerOnline = true;
+        localStorage.setItem(LS_LIFEOS_LAST_SYNC, Date.now().toString());
+        updateLifeosStatusPill();
+      } else {
+        throw new Error("Sync failed");
+      }
+    } catch (e) {
+      // Server might be offline - check status
+      lifeosServerOnline = false;
+      updateLifeosStatusPill();
+    }
+  }
+
+  $("lifeosSetupBtn").onclick = startLifeosServer;
+  $("lifeosStatusPill").onclick = async () => {
+    if (lifeosServerOnline) {
+      await forceSyncToLifeos();
+      showToast("Synced to LifeOS.");
+    } else {
+      const online = await checkLifeosServer();
+      if (online) {
+        await forceSyncToLifeos();
+        showToast("Server found! Synced.");
+      } else {
+        startLifeosServer();
+      }
+    }
+  };
+
+  // Check server status on load and periodically
+  checkLifeosServer();
+  setInterval(checkLifeosServer, 30000); // Check every 30s
+
+  $("stateSearch").oninput = renderList;
+
+  // ---------- keyboard shortcuts ----------
+  document.addEventListener("keydown", (e) => {
+    // Ctrl/Cmd + S = Save
+    if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+      e.preventDefault();
+      const state = getSelected();
+      if (state) {
+        state.updatedAt = Date.now();
+        saveDB(db);
+        showToast("Saved (Ctrl/Cmd+S)");
+        render();
+      }
+    }
+    
+    // Ctrl/Cmd + N = New state
+    if ((e.ctrlKey || e.metaKey) && e.key === "n") {
+      e.preventDefault();
+      createState(null);
+    }
+    
+    // Ctrl/Cmd + E = Export
+    if ((e.ctrlKey || e.metaKey) && e.key === "e") {
+      e.preventDefault();
+      if (confirm("Export as JSON (OK) or CSV (Cancel)?")) {
+        exportJSON();
+      } else {
+        exportCSV();
+      }
+    }
+  });
+
+  // initial seed (optional): create a first state if none
+  if (db.states.length === 0){
+    // keep empty until user creates, but you can uncomment next line to auto-create:
+    // createState(null);
+  } else if (!db.selectedId || !db.states.some(s => s.id === db.selectedId)) {
+    db.selectedId = db.states[0].id;
+    saveDB(db);
+  }
+
+  render();
+  
+  // Check if export reminder needed (after 2 seconds to not interfere with initial load)
+  setTimeout(checkExportReminder, 2000);
+})();
+</script>
+</body>
+</html>

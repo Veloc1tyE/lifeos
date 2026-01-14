@@ -1,0 +1,33 @@
+{
+  "detected": [],
+  "watching": [
+    {
+      "id": "PAT001",
+      "description": "Late-day completion / leaving habits too late",
+      "firstObserved": "2026-01-13",
+      "occurrences": 0,
+      "pillarAffected": [1, 7],
+      "intervention": "Evening shutdown protocol",
+      "status": "monitoring"
+    },
+    {
+      "id": "PAT002",
+      "description": "Arabic learning zero traction across weeks",
+      "firstObserved": "2026-01-13",
+      "occurrences": 5,
+      "pillarAffected": [4],
+      "intervention": "Forcing function needed (scheduled classes)",
+      "status": "active"
+    },
+    {
+      "id": "PAT003",
+      "description": "Capital thinking replacing capital motion",
+      "firstObserved": "2026-01-13",
+      "occurrences": 0,
+      "pillarAffected": [3],
+      "intervention": "Daily capital action requirement",
+      "status": "monitoring"
+    }
+  ],
+  "resolved": []
+}

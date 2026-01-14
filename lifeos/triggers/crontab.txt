@@ -1,0 +1,57 @@
+# LifeOS Cron Configuration
+#
+# To install: crontab -e and paste these lines
+# To view current: crontab -l
+#
+# Note: These assume Abu Dhabi timezone (GMT+4)
+# Adjust times based on your actual wake/sleep schedule
+#
+# The cron jobs open Terminal and run the triggers.
+# You may prefer manual triggers or macOS Shortcuts instead.
+
+# ============================================
+# DAILY TRIGGERS
+# ============================================
+
+# Morning Calibration - 6:00 AM Abu Dhabi
+# (Adjust to your actual wake time)
+# 0 6 * * * cd ~/Documents/dashboard && ./lifeos/triggers/morning.sh
+
+# Evening Shutdown - 9:00 PM Abu Dhabi
+# (Adjust to your actual shutdown time)
+# 0 21 * * * cd ~/Documents/dashboard && ./lifeos/triggers/evening.sh
+
+# ============================================
+# WEEKLY TRIGGERS
+# ============================================
+
+# Weekly Integrity Review - Sunday 7:00 PM Abu Dhabi
+# 0 19 * * 0 cd ~/Documents/dashboard && ./lifeos/triggers/weekly.sh
+
+# ============================================
+# ALTERNATIVE: macOS SHORTCUTS
+# ============================================
+#
+# Instead of cron, you can create Shortcuts that:
+# 1. Open Terminal
+# 2. Run: cd ~/Documents/dashboard && ./lifeos/triggers/morning.sh
+#
+# Benefits:
+# - Can be triggered manually or by time
+# - Can be added to menu bar
+# - Works better with macOS sleep/wake cycles
+# - Can show notifications
+#
+# ============================================
+# MANUAL TRIGGERS (RECOMMENDED START)
+# ============================================
+#
+# Start with manual triggers until rhythm is established:
+#
+# Morning:   cd ~/Documents/dashboard && ./lifeos/triggers/morning.sh
+# Evening:   cd ~/Documents/dashboard && ./lifeos/triggers/evening.sh
+# Check-in:  cd ~/Documents/dashboard && ./lifeos/triggers/checkin.sh
+# Weekly:    cd ~/Documents/dashboard && ./lifeos/triggers/weekly.sh
+#
+# Or simply: cd ~/Documents/dashboard && claude
+# (This loads LifeOS via CLAUDE.md automatically)

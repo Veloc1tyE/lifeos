@@ -1,0 +1,51 @@
+# ========================================
+# LifeOS .gitignore
+# ========================================
+
+# Credentials and tokens - NEVER commit
+client_secret*.json
+lifeos/integrations/*.json
+lifeos/integrations/**/.env
+lifeos/integrations/**/token*.json
+lifeos/integrations/**/credentials*.json
+*.env
+
+# Personal data - NEVER commit
+Journal.json
+*.pdf
+lifeos/integrations/garmin/data/
+lifeos/integrations/dayone/data/
+lifeos/integrations/calendar/data/
+lifeos/integrations/gmail/data/
+
+# Live state files (synced from dashboard, contains personal data)
+lifeos/state/dashboard-live.json
+
+# Backup files
+*.zip
+*-backup.html
+
+# Python
+*.pyc
+__pycache__/
+*.egg-info/
+.eggs/
+venv/
+.venv/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Temporary
+*.tmp
+*.temp

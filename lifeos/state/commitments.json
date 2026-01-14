@@ -1,0 +1,43 @@
+{
+  "active": [
+    {
+      "id": "C001",
+      "created": "2026-01-13",
+      "pillar": 2,
+      "commitment": "Complete 90-min training session tonight",
+      "deadline": "2026-01-13",
+      "status": "pending",
+      "completedAt": null
+    },
+    {
+      "id": "C002",
+      "created": "2026-01-13",
+      "pillar": 1,
+      "commitment": "Log RHR/HRV before bed tonight",
+      "deadline": "2026-01-13",
+      "status": "pending",
+      "completedAt": null
+    },
+    {
+      "id": "C003",
+      "created": "2026-01-13",
+      "pillar": 4,
+      "commitment": "Schedule Arabic classes this week",
+      "deadline": "2026-01-19",
+      "status": "pending",
+      "completedAt": null
+    },
+    {
+      "id": "C004",
+      "created": "2026-01-13",
+      "pillar": 3,
+      "commitment": "Update CRM to UAE-relevant structure",
+      "deadline": "2026-01-19",
+      "status": "pending",
+      "completedAt": null
+    }
+  ],
+  "completed": [],
+  "dropped": [],
+  "renegotiated": []
+}
