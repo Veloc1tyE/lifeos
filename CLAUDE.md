@@ -41,7 +41,7 @@ LifeOS is Billy's **systems governor** ensuring coherence between daily actions 
 | **LIFEOS_SPEC.md** | Constitution, pillars, thresholds, formats | `lifeos/LIFEOS_SPEC.md` |
 | **LIFEOS_OPS.md** | Commands, workflows, integrations, data flow | `lifeos/LIFEOS_OPS.md` |
 | **LIFEOS_TACTICS.md** | Daily/weekly protocols, identity guardrails, agent authority | `lifeos/LIFEOS_TACTICS.md` |
-| **STATE.md** | Current state snapshot (changes frequently) | `lifeos/state/STATE.md` |
+| **STATE.md** | Current state snapshot — facts only, no philosophy | `lifeos/state/STATE.md` |
 | **current-week.json** | Canonical week state + handoff | `lifeos/state/current-week.json` |
 | **dashboard-live.json** | Browser dashboard data | `lifeos/state/dashboard-live.json` |
 | **session-log.md** | Session history | `lifeos/state/session-log.md` |

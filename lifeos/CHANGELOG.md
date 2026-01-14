@@ -88,6 +88,15 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## Promotion Pipeline
+
+**Tactics → SPEC lifecycle:**
+> Tactics used ≥3x successfully → distilled rule promoted to SPEC (recorded as `STRUCTURAL CHANGE vYYYY-MM-DD`)
+
+This keeps the system lean while preserving proven operational wisdom.
+
+---
+
 ## Version History Summary
 
 | Version | Date | Summary |
