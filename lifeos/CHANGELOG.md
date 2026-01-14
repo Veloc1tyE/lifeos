@@ -7,6 +7,21 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [2.0.1] - 2026-01-14
+
+### Changed
+- Renamed `pending-notes.md` → `inbox.md` (function over status)
+- Added `state/README.md` to protect against philosophy creep
+
+### Fixed
+- `weekly.sh` reference to journal path (`Journal.json` → `lifeos/integrations/dayone/data/journal.json`)
+- Removed stale backlog reference in `current-week.json`
+
+### Removed
+- Temporary files: `combined_chart.js`, `SETUP-PLAN.md`, untracked data artifacts
+
+---
+
 ## [2.0.0] - 2026-01-14
 
 ### Architecture
