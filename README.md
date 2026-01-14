@@ -2,6 +2,9 @@
 
 Personal Life Operating System for tracking commitments, health metrics, and maintaining coherence across 7 pillars.
 
+**Version:** 2.0.0
+**Architecture:** 4-document system (SPEC / OPS / TACTICS / STATE)
+
 ## Quick Start
 
 ```bash
@@ -27,7 +30,7 @@ lifeos
 ```bash
 lifeos-sync         # Terminal 1 - leave running all day
 lifeos-garmin       # Pull overnight biometrics
-lifeos-journal      # pull morning journal if you've made an entry
+lifeos-journal      # Pull morning journal if you've made an entry
 lifeos              # → "Morning calibration"
 ```
 
@@ -59,34 +62,48 @@ lifeos              # → "Weekly review"
 | `lifeos-weekly` | Sunday integrity review |
 | `lifeos-checkin` | Quick status check |
 
-## File Structure
+## Architecture (v2.0)
+
+LifeOS uses a 4-document architecture optimized for change frequency:
 
 ```
 dashboard/
+├── CLAUDE.md                   # Entry point + quickstart (read first)
 ├── dashboard.html              # Main tracking dashboard
-├── CLAUDE.md                   # LifeOS specification (7 pillars)
 ├── README.md                   # This file
 └── lifeos/
+    ├── LIFEOS_SPEC.md          # Constitution, invariants, thresholds (rare changes)
+    ├── LIFEOS_OPS.md           # Commands, schemas, integrations (occasional changes)
+    ├── LIFEOS_TACTICS.md       # Playbooks, checklists, execution (frequent changes)
+    ├── CHANGELOG.md            # Version history + evolution log
+    ├── SETUP-PLAN.md           # Bootstrap + recovery guide
     ├── state/
+    │   ├── STATE.md            # Current snapshot (human-readable)
+    │   ├── current-week.json   # Primary state file (JSON)
     │   ├── dashboard-live.json # Auto-synced from browser
     │   ├── commitments.json    # Active commitments
     │   └── session-log.md      # Session history
     ├── integrations/
-    │   ├── garmin/
-    │   │   ├── sync.py         # Garmin data sync
-    │   │   ├── data/           # Health data JSON files
-    │   │   └── .env            # Garmin credentials
-    │   ├── google-credentials.json
-    │   ├── token-work.json     # Google OAuth (will@aquila.earth)
-    │   └── token-personal.json # Google OAuth (personal)
+    │   ├── garmin/             # Garmin Connect sync
+    │   ├── dayone/             # DayOne journal sync
+    │   ├── calendar/           # Google Calendar sync
+    │   └── gmail/              # Gmail sync
     ├── reviews/
-    │   ├── daily/              # Daily micro-reviews
-    │   └── templates/          # Review templates
+    │   └── templates/          # Review templates (daily, weekly, monthly)
     └── triggers/
-        ├── morning.sh
-        ├── evening.sh
-        └── weekly.sh
+        ├── morning.sh          # Morning calibration
+        ├── evening.sh          # Evening shutdown
+        └── weekly.sh           # Weekly review
 ```
+
+## Document Hierarchy
+
+| Document | Purpose | Change Frequency |
+|----------|---------|------------------|
+| `LIFEOS_SPEC.md` | Constitution, invariants, pillar definitions | Rare |
+| `LIFEOS_OPS.md` | Commands, workflows, data schemas | Occasional |
+| `LIFEOS_TACTICS.md` | Daily playbooks, failure responses, execution | Frequent |
+| `state/STATE.md` | Current snapshot, facts only | Daily |
 
 ## The 7 Pillars
 
@@ -98,6 +115,14 @@ dashboard/
 6. **Output, Writing & Creation** - Weekly shipping
 7. **Review & Integrity** - SUPERORDINATE
 
+## Global Invariants
+
+Three non-negotiable rules that override everything:
+
+1. **Shutdown Enforcement** - No new work after shutdown
+2. **Friction Budget** - If friction score ≥3, operate in Maintenance Mode
+3. **Integrity Requirement** - Weekly Review must produce 3 artifacts
+
 ## Garmin Metrics Tracked
 
 - Heart Rate (resting, 7-day avg, min/max)
@@ -107,6 +132,7 @@ dashboard/
 - Stress (avg, max, time in zones)
 - Activity (steps, calories, active mins)
 - Training (VO2max, load, readiness score)
+- **Endurance Score** (primary UTA 100 metric)
 - Race Predictions (5K, 10K, Half, Marathon)
 
 ## Key Principle
@@ -115,10 +141,15 @@ dashboard/
 
 LifeOS protects long-term trajectory against drift. Health overrides everything. Structure beats willpower. One adjustment per week, not five.
 
-## Documentation
+## Contributing to LifeOS
 
-Full specification in `CLAUDE.md` including:
-- All 7 pillar definitions and protocols
-- Intervention thresholds and playbooks
-- Daily/weekly operating systems
-- Social distribution workflows
+Changes follow semantic versioning and are logged in `CHANGELOG.md`:
+
+- **SPEC changes:** Rare, require proven benefit (tactics used 3+ times)
+- **OPS changes:** When infrastructure evolves
+- **TACTICS changes:** Frequent, low friction
+- **STATE changes:** Daily, facts only
+
+## License
+
+Private repository. Personal use only.

@@ -21,9 +21,12 @@ lifeos/integrations/gmail/data/
 # Live state files (synced from dashboard, contains personal data)
 lifeos/state/dashboard-live.json
 
-# Backup files
+# Backup and export files
 *.zip
 *-backup.html
+commitments-dashboard-*.json
+dashboard-import*.json
+dashboard-poc.html
 
 # Python
 *.pyc
