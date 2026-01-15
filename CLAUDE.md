@@ -4,15 +4,14 @@
 
 ---
 
-## Start Here (7-Line Quickstart)
+## Start Here (One Command)
 
-1. **Run sync:** `lifeos-sync` (keep running in terminal)
-2. **Ingest state:** Read `lifeos/state/current-week.json` + dashboard-live.json + Garmin
-3. **Assess:** Day State (GREEN/YELLOW/RED), Friction Score (0-5), primary bottleneck
-4. **Report:** STATUS → KEY SIGNALS → BOTTLENECK → ONE-STEP CORRECTION
-5. **Action packet:** If needed: DOMAIN → TRIGGER → ACTION → COMPLETION CRITERIA
-6. **Close loops:** What committed? What completed? What slipped?
-7. **Update handoff:** Before closing, write `handoff` in current-week.json
+**Morning:** `lifeos-morning` — syncs data, runs calibration, updates state
+**Evening:** `lifeos-evening` — syncs data, logs training, runs shutdown
+**Anytime:** `lifeos-checkin` — syncs Garmin, quick status check
+**Sunday:** `lifeos-weekly` — full integrity review
+
+Each command auto-syncs data and updates `current-week.json`. One command per session.
 
 ---
 
@@ -44,6 +43,7 @@ LifeOS is Billy's **systems governor** ensuring coherence between daily actions 
 | **STATE.md** | Current state snapshot — facts only, no philosophy | `lifeos/state/STATE.md` |
 | **current-week.json** | Canonical week state + handoff | `lifeos/state/current-week.json` |
 | **dashboard-live.json** | Browser dashboard data | `lifeos/state/dashboard-live.json` |
+| **artifacts/** | Temp working files for deep work sessions | `lifeos/artifacts/` |
 | **session-log.md** | Session history | `lifeos/state/session-log.md` |
 
 ---
@@ -51,12 +51,12 @@ LifeOS is Billy's **systems governor** ensuring coherence between daily actions 
 ## Quick Commands
 
 ```bash
-lifeos              # Open Claude with context
-lifeos-sync         # Start dashboard sync server
-lifeos-garmin       # Pull Garmin biometrics
-lifeos-morning      # Morning calibration
-lifeos-evening      # Evening shutdown
-lifeos-weekly       # Sunday integrity review
+lifeos-morning      # Morning calibration (auto-syncs all data)
+lifeos-evening      # Evening shutdown (auto-syncs, logs training)
+lifeos-checkin      # Quick status check (auto-syncs Garmin)
+lifeos-weekly       # Sunday integrity review (auto-syncs all)
+lifeos              # Ad-hoc session (no auto-sync, for deep work)
+lifeos-sync         # Optional: browser dashboard live sync
 ```
 
 ---
@@ -77,15 +77,33 @@ P3-P6 (Capital, Learning, Relationships, Output) — subordinate to P1 & P2
 
 ---
 
+## Daily Schedule Anchors
+
+| Time | Activity | Notes |
+|------|----------|-------|
+| 05:00 | Wake | Target 8h sleep |
+| 06:00 | Gym | Arrive early to finish by 08:00 |
+| 08:00 | Day starts | Post-training, breakfast |
+| 19:00-20:00 | Evening session | Last productive block |
+| 20:00-21:00 | Wind-down | Protected — reading, no screens |
+| 21:00 | Lights out | Non-negotiable for 05:00 wake |
+
+**Rule:** `lifeos-evening` auto-syncs Garmin + journal before running shutdown protocol.
+
+---
+
 ## Global Invariants
 
 ### 1. Shutdown Enforcement
 "No new work after shutdown." Undone items → backlog for tomorrow, never night rescue.
 
-### 2. Friction Budget
+### 2. Wind-Down Protection
+20:00-21:00 is screen-free wind-down. No new tasks, no "just one more thing." Reading, stretching, decompression only.
+
+### 3. Friction Budget
 If Friction ≥ 3 (sleep disruption + admin load + conflict + travel + injury), operate in **Maintenance Mode** only.
 
-### 3. Integrity Requirement
+### 4. Integrity Requirement
 Weekly Review must produce: (1) Kept promises, (2) Broken promises with disposition, (3) ONE structural adjustment as a rule.
 
 ---
@@ -107,11 +125,21 @@ Weekly Review must produce: (1) Kept promises, (2) Broken promises with disposit
 Then execute:
 
 1. **INGEST:** current-week.json, dashboard-live.json, Garmin, journals
-2. **ASSESS:** Trajectory, friction score, bottleneck
-3. **REPORT:** Status, signals, bottleneck, correction
-4. **ACTION PACKET:** If needed
-5. **CLOSE LOOPS:** Committed vs completed
-6. **SESSION END:** Update handoff
+2. **EXTRACT:** Surface actionable items from journals (tasks, contacts, open loops)
+3. **ASSESS:** Trajectory, friction score, bottleneck
+4. **REPORT:** Status, signals, bottleneck, correction
+5. **ACTION PACKET:** If needed
+6. **CLOSE LOOPS:** Committed vs completed
+7. **SESSION END:** Update handoff
+
+### Evening Protocol (19:00-20:00)
+
+1. **REFRESH DATA:** Pull fresh Garmin + journal before anything else
+2. **EXTRACT FROM JOURNALS:** Surface tasks, contacts, open loops mentioned in today's entries
+3. **CLOSE LOOPS:** What was committed? What completed? What slipped?
+4. **QUICK WINS:** If time permits, tackle one small pending item (e.g., post drafts, quick outreach)
+5. **UPDATE STATE:** Write handoff, update current-week.json
+6. **HARD STOP:** By 20:00 — no exceptions. Wind-down begins.
 
 ---
 
@@ -120,6 +148,8 @@ Then execute:
 | Condition | Action |
 |-----------|--------|
 | RHR >70 or HRV <40 | Recovery day mandatory. No intensity. Protect sleep. |
+| Training Readiness <40 | Z1/Z2 only or rest. No intervals, no threshold work. |
+| Body Battery <20 | Reduce all load. Recovery priority. |
 | Endurance Score decline >300 | 48-72h remove intensity. Z1/Z2 only. Reassess 3-day trend. |
 | 0 meetings in a week | Work velocity alert. Schedule meeting within 48h. |
 | Pain scale >6 | Stop impact. Non-impact Z2 only. Physio if persists 48h. |
@@ -166,6 +196,11 @@ lifeos  # Then: "Deep work session on [topic]"
 ```
 
 **Session types:** Capital motion, technical thinking, writing/output, strategic
+
+**Artifacts workflow:** Import → Work → Export → Delete
+- Temp files go in `lifeos/artifacts/` (git-ignored)
+- Name: `[topic]-[date].md` (e.g., `crm-pipeline-2026-01-14.md`)
+- Delete artifact after exporting to external systems
 
 **Rules:** Stay focused on stated topic, capture concrete outputs, note insights for other pillars in handoff.
 

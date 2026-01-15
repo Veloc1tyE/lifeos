@@ -12,19 +12,32 @@ echo "======================================"
 
 cd "$DASHBOARD_DIR"
 
-# Launch Claude Code
-claude --print "
+# Pull fresh data BEFORE launching Claude
+echo "Syncing data..."
+python3 lifeos/integrations/garmin/sync.py 2>/dev/null || echo "Garmin sync skipped"
+
+# Launch Claude Code with explicit state update requirements
+claude -p "
 LifeOS CHECK-IN
 
 Time: $(date +"%A, %B %d %H:%M") Abu Dhabi
 
-Quick status check:
+MANDATORY DATA READS:
+1. Read lifeos/state/current-week.json (handoff, today, pillar status)
+2. Read lifeos/integrations/garmin/data/current.json (fresh biometrics)
+3. Read lifeos/state/dashboard-live.json if exists
 
-1. Read lifeos/state/current-week.json
-2. Read lifeos/state/commitments.json (check what's due)
-3. Provide brief status on all 7 pillars
-4. Identify primary bottleneck right now
-5. Suggest one-step correction if needed
+THEN:
+1. Provide brief status on all 7 pillars (one line each)
+2. Identify primary bottleneck right now
+3. Suggest one-step correction if needed
 
-Keep response under 200 words. Facts only.
+MANDATORY STATE UPDATE:
+Before closing, update lifeos/state/current-week.json:
+- today.dayState
+- today.frictionScore
+- handoff.lastSession with timestamp
+- Any task status changes
+
+Keep response under 200 words after state update. Facts only.
 "

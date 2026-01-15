@@ -2,26 +2,49 @@
   "week": 3,
   "weekStart": "2026-01-12",
   "timezone": "Asia/Dubai",
-  "lastUpdated": "2026-01-14T12:00:00+04:00",
-  "lastSessionId": "003",
+  "lastUpdated": "2026-01-15T19:30:00+04:00",
+  "lastSessionId": "009",
 
   "pillarStatus": {
     "p1_health": {
       "status": "YELLOW",
-      "signals": ["HRV slightly suppressed post-load (66 vs 70 baseline)"],
+      "signals": [
+        "Training Readiness 33 (LOW)",
+        "Body Battery dipped to 12 today",
+        "HRV 66 vs 70 baseline (suppressed)",
+        "Stress spike to 99 during day",
+        "Recovery not keeping pace with load"
+      ],
       "lastAssessed": "2026-01-14"
     },
     "p2_training": {
       "status": "BUILDING",
-      "minutesLogged": 245,
-      "sessionsCompleted": 1,
+      "minutesLogged": 467,
+      "sessionsCompleted": 4,
+      "dailyLog": [
+        {"day": "Sun", "date": "2026-01-11", "session": null},
+        {"day": "Mon", "date": "2026-01-12", "session": "Training session", "minutes": 90},
+        {"day": "Tue", "date": "2026-01-13", "session": "90-min session", "minutes": 90, "confirmed": true},
+        {"day": "Wed", "date": "2026-01-14", "session": "Intervals", "minutes": null},
+        {"day": "Thu", "date": "2026-01-15", "session": "Rest day (deliberate)", "minutes": 0},
+        {"day": "Fri", "date": "2026-01-16", "session": null},
+        {"day": "Sat", "date": "2026-01-17", "session": null}
+      ],
       "enduranceScore": {
         "current": 5628,
         "weeklyAvg": 5628,
         "target": "5800-6200",
         "trajectory": "ON_TRACK"
       },
-      "note": "Load trending up fast, intervals today",
+      "note": "Load trending up fast, intervals today. Travel/relocation friction suppressed gains this week.",
+      "uta100Assessment": {
+        "assessed": "2026-01-14",
+        "januaryStatus": "ON_TRACK",
+        "mayProjection": "AT_RISK_WITHOUT_ACCELERATION",
+        "decision": "Stay current REBUILD course through January. Expect gains to re-accelerate as volume and long-duration sessions scale.",
+        "reassessDate": "2026-02-01",
+        "keyGap": "Vertical accumulation — current ~80m/week insufficient for 5,500m race elevation"
+      },
       "lastAssessed": "2026-01-14"
     },
     "p3_capital": {
@@ -63,32 +86,31 @@
   },
 
   "today": {
-    "date": "2026-01-14",
-    "dayState": "YELLOW",
+    "date": "2026-01-15",
+    "dayState": "GREEN",
     "frictionScore": 2,
-    "frictionSignals": ["admin load (WorkCover, RTW)", "relocation context"],
-    "deepWork": {
-      "focus": "Capital motion: CRM hygiene + capital velocity plan",
-      "area": "bizdev",
-      "completed": false
+    "frictionSignals": ["admin backlog", "calorie deficit signal"],
+    "training": {
+      "planned": "Recovery day — no 90-min session",
+      "actual": "Rest + calorie resupply",
+      "note": "Deliberate recovery. Tomorrow: elliptical + strength + VO2 (4x 30s max / 90s rest). Saturday: 90-min run. Sunday: rest."
     },
     "critical3": [
-      {"task": "Capital motion: CRM hygiene + velocity plan", "status": "pending"},
-      {"task": "Find Al Maryah Island sublet (until May)", "status": "pending"}
+      {"task": "WFES Final Day (10am-12:30pm)", "status": "in_progress"},
+      {"task": "Jeff Curd lunch (1pm International Tennis Centre)", "status": "open"},
+      {"task": "Check TRAIN gym for apartment key", "status": "done"}
     ],
     "backlog": [
-      {"task": "Settle balance: TRAIN gym", "status": "done"},
-      {"task": "Settle balance: TRAIN bar", "status": "done"},
-      {"task": "Settle balance: Daily Press", "status": "done"},
-      {"task": "Get electrolytes for long sessions", "status": "done"},
+      {"task": "LinkedIn post reposted with image", "status": "done"},
+      {"task": "Sublet responses check (FB/WhatsApp)", "status": "open"},
       {"task": "Schedule Arabic classes", "status": "open"},
-      {"task": "TAQA follow-up (Qais)", "status": "open"},
-      {"task": "Fill out WorkCover forms (My Mirror psych)", "status": "open"},
-      {"task": "Fill out RTW plan + liaise with case manager", "status": "open"},
+      {"task": "Steve Farmer outreach", "status": "open"},
+      {"task": "Eliah family friend outreach", "status": "open"},
+      {"task": "Fill out WorkCover forms", "status": "open"},
+      {"task": "Fill out RTW plan", "status": "open"},
       {"task": "Haircut", "status": "open"},
       {"task": "Write down core values", "status": "open"},
-      {"task": "Sunday vert calculation (elliptical)", "status": "open"},
-      {"task": "Weekly review prep", "status": "open"}
+      {"task": "Replace damaged shoes", "status": "open"}
     ]
   },
 
@@ -114,24 +136,44 @@
   },
 
   "handoff": {
-    "lastSession": "2026-01-14 night — LifeOS v2.0 complete + GitHub setup",
+    "lastSession": "2026-01-15 — Session 009 QUICK UPDATE",
     "sessionSummary": [
-      "COMPLETED: LifeOS v2.0 architecture restructure",
-      "COMPLETED: GitHub repo setup (private, version-controlled)",
-      "COMPLETED: README updated for v2.0, data files cleaned from tracking",
-      "Architecture now frozen — no structural changes for 4-8 weeks",
-      "Let tactics earn promotion through use (3+ times → SPEC)"
+      "Recovery day taken — no 90-min session, resupply calories",
+      "Gym key retrieved from TRAIN",
+      "WEEK PLAN: Thu (elliptical + strength + VO2 4x30s/90s), Sat (90-min run), Sun (rest)",
+      "PROJECTED: ~600 intensity minutes (step up from last week's 468)",
+      "TRAINING LOAD: Still in optimal range. 'Above targets' is expected — Garmin 996 auto-adjusts optimal range upward"
     ],
     "openLoops": [
-      "Alex/investor confidentiality - told him to keep it quiet, monitor",
-      "WorkCover forms (My Mirror psych) — not started",
-      "RTW plan + case manager liaison — not started"
+      "Jeff Curd — lunch confirmed 1pm tomorrow Masdar City Centre",
+      "Marc van Zeyl — sent msg re: Stefan intro (fund of funds, Saturday family office event)",
+      "Stefan (via Marc) — awaiting intro/response for family office access",
+      "LinkedIn post publishes 22:00 UTC — check engagement tomorrow",
+      "TAQA (Qais) — follow up on rescheduled meeting by Jan 16",
+      "Hub71 (Helen) — re-engage by Jan 17",
+      "ADIO (Reem) — send Aquila profile by Jan 17",
+      "Alex Sapilsky (Cicada AU) — can connect to embassy + others",
+      "David Waterhouse (dave@cybernetx.ai) — can connect to embassy + others",
+      "Steve Farmer — Dad's lawyer friend, Space42 legal angle (from journal)",
+      "Family friend via Eliah — met last trip to Abu Dhabi (from journal)",
+      "Sublet posts live (7 groups) — check WhatsApp + FB for responses",
+      "Alex disclosed Ruby situation to investor — asked to keep confidential",
+      "UTA100km Feb 1 reassessment",
+      "WorkCover forms — not started",
+      "RTW plan — not started"
     ],
     "pendingActions": {
-      "critical": ["Capital motion deep work", "Al Maryah Island sublet search"],
-      "backlog": ["Arabic classes", "TAQA follow-up", "WorkCover forms", "RTW plan", "Haircut", "Core values", "Sunday vert calc", "Weekly review prep"]
+      "critical": ["Al Maryah Island sublet search (FB groups active)"],
+      "backlog": ["Arabic classes", "WorkCover forms", "RTW plan", "Haircut", "Core values", "Sunday vert calc", "Weekly review prep"]
     },
-    "nextSessionContext": "Next session: normal operations. Check critical3 progress, backlog closures. Sunday: calculate elliptical vert for week, weekly review.",
-    "blockers": []
+    "nextSessionContext": "Jan 16 TRAINING: Elliptical + strength + VO2 (4x 30s max / 90s rest). Sat: 90-min run. Sun: rest. Target ~600 intensity min for week (up from 468). AWAITING: Marc re Stefan intro. UPCOMING: TAQA follow-up (Jan 16), Hub71+ADIO (Jan 17), BNI (Jan 22).",
+    "blockers": [],
+    "infrastructureBuilt": {
+      "artifacts": "lifeos/artifacts/ — temp working files for deep work",
+      "gmailStarred": "lifeos/integrations/gmail/sync.py — now pulls starred emails",
+      "beeper": "lifeos/integrations/beeper/sync.py — WhatsApp/LinkedIn chat access",
+      "calendarWrite": "lifeos/integrations/calendar/sync.py — can create events",
+      "beeperMCP": "Added to Claude Code MCP servers"
+    }
   }
 }
