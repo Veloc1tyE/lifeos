@@ -15,18 +15,22 @@ For current state snapshot, see: `lifeos/state/STATE.md`
 
 ### Shell Aliases
 
+**Primary Commands (each syncs data then launches Claude):**
 ```bash
-lifeos              # Open Claude with full LifeOS context
-lifeos-sync         # Start dashboard sync server (keep running)
-lifeos-garmin       # Pull latest Garmin health data
-lifeos-journal      # Pull recent DayOne journal entries
-lifeos-calendar     # Pull Google Calendar (today + 3 days)
-lifeos-email        # Pull Gmail inbox status + priority threads
-lifeos-morning      # Morning calibration ritual
-lifeos-evening      # Evening shutdown ritual
-lifeos-weekly       # Sunday integrity review
-lifeos-checkin      # Quick status check anytime
-lifeos-beeper       # Pull Beeper chats (WhatsApp, etc.)
+lifeos-morning      # Sync all → Morning calibration session
+lifeos-evening      # Sync Garmin/journal → Evening shutdown session
+lifeos-checkin      # Sync Garmin → Quick status check session
+lifeos-weekly       # Sync all → Integrity review session
+lifeos              # Ad-hoc session (deep work, manual topic)
+```
+
+**Individual Syncs (rarely needed, data syncs automatically with main commands):**
+```bash
+lifeos-garmin       # Pull Garmin health data
+lifeos-journal      # Pull DayOne journal entries
+lifeos-calendar     # Pull Google Calendar
+lifeos-email        # Pull Gmail inbox
+lifeos-beeper       # Pull Beeper chats
 ```
 
 ### File Locations
@@ -80,68 +84,75 @@ lifeos-beeper       # Pull Beeper chats (WhatsApp, etc.)
 
 ## Daily Workflow
 
+### One Command Per Ritual
+
+Each command syncs data and launches Claude with the right prompt. One command does everything.
+
 ### 1. Start of Day
 
 ```bash
-# Terminal 1: Start sync server (keep open all day)
-lifeos-sync
-
-# Terminal 2: Morning calibration (auto-syncs data first)
 lifeos-morning
 ```
 
-**Note:** The trigger scripts (morning, evening, checkin, weekly) now automatically pull fresh data before launching Claude. Manual sync commands are only needed for ad-hoc data checks.
-
-**Morning Data Requirement:** LifeOS must ALWAYS read fresh Garmin biometrics (`garmin-YYYY-MM-DD.json`) and DayOne journal entries (`current.json`) during morning calibration. Dashboard data alone is insufficient — Garmin provides overnight recovery metrics (RHR, HRV, sleep score, Training Readiness, Body Battery) and journals contain actionable items to extract.
+Syncs Garmin/journal/calendar, then launches Claude for morning calibration (state assessment, journal extraction, priority locking).
 
 ### 2. Throughout Day
 
-- Dashboard auto-syncs to `lifeos/state/dashboard-live.json` on every edit
-- Status pill shows "LIVE" when sync server running
-- Make edits in dashboard → data flows to LifeOS automatically
+Dashboard edits sync automatically. For quick status checks:
+
+```bash
+lifeos-checkin
+```
 
 ### 3. End of Day
 
 ```bash
-# Refresh data before evening protocol
-lifeos-garmin       # Fresh biometrics (recovery, body battery)
-lifeos-journal      # Today's journal entries
-
-# Then run shutdown
 lifeos-evening
 ```
 
-**Evening Data Refresh:** Always pull fresh Garmin and journal data before evening shutdown. Body battery and recovery metrics change throughout the day; journal entries contain actionable items that need extraction.
+Syncs Garmin/journal, then launches Claude for evening shutdown (log training, close loops, update handoff).
 
-**Shutdown Enforcement:** No new work after shutdown. If something is undone, it becomes a backlog loop for tomorrow — never a night rescue.
+**Hard stop by 20:00.** Wind-down begins.
 
 ### 4. Weekly (Sunday)
 
 ```bash
-lifeos-weekly       # Full integrity review
+lifeos-weekly
 ```
+
+Syncs all data, then launches Claude for full integrity review.
+
+### Ad-hoc (Deep Work)
+
+```bash
+lifeos
+```
+
+For deep work sessions without a predefined prompt. State the topic when Claude starts.
 
 ---
 
-## Dashboard Auto-Sync Setup
+## Dashboard Sync (Core Infrastructure)
 
-**Start the sync server (any terminal):**
-```bash
-cd ~/Documents/dashboard && python3 lifeos/sync-server.py
-```
+The browser dashboard is the main operating system. Changes sync automatically to `dashboard-live.json`.
 
-Or use the shortcut:
+**Auto-started via launchd:**
+- Service: `com.lifeos.sync`
+- Runs on login, stays running
+- Log: `lifeos/state/sync-server.log`
+
+**Manual control (if needed):**
 ```bash
-cd ~/Documents/dashboard/lifeos && ./start-sync.sh
+launchctl stop com.lifeos.sync     # Stop
+launchctl start com.lifeos.sync    # Start
+curl http://localhost:3456/health  # Check status
 ```
 
 **How it works:**
 - Sync server runs on `http://localhost:3456`
-- Dashboard POSTs data automatically after 3 seconds of inactivity
-- Status pill shows "LIVE" (green) when server is running
-- Status pill shows "OFFLINE" (yellow) when server is stopped
-- Click the pill to force sync or check server status
-- Works in ANY browser
+- Dashboard POSTs data after 3 seconds of inactivity
+- Status pill: "LIVE" (green) = running, "OFFLINE" (yellow) = stopped
+- Works in any browser
 
 ---
 
@@ -562,20 +573,24 @@ Questions:
 
 Location: `lifeos/triggers/`
 
-| Script | Purpose |
-|--------|---------|
-| `morning.sh` | Morning calibration |
-| `evening.sh` | Evening shutdown |
-| `weekly.sh` | Sunday integrity review |
-| `checkin.sh` | Quick status check |
-| `crontab.txt` | Automation config |
+| Script | What It Does |
+|--------|--------------|
+| `morning.sh` | Syncs Garmin/journal/calendar → launches Claude with morning prompt |
+| `evening.sh` | Syncs Garmin/journal → launches Claude with shutdown prompt |
+| `checkin.sh` | Syncs Garmin → launches Claude with quick checkin prompt |
+| `weekly.sh` | Syncs all data → launches Claude with integrity review prompt |
 
-**Quick commands:**
+**Design:** Each script:
+1. Ensures dashboard sync server is running
+2. Syncs relevant data sources
+3. Launches Claude with the appropriate session prompt
+
+**Commands:**
 ```bash
-cd ~/Documents/dashboard && ./lifeos/triggers/morning.sh
-cd ~/Documents/dashboard && ./lifeos/triggers/evening.sh
-cd ~/Documents/dashboard && ./lifeos/triggers/checkin.sh
-cd ~/Documents/dashboard && ./lifeos/triggers/weekly.sh
+lifeos-morning      # → morning.sh
+lifeos-evening      # → evening.sh
+lifeos-checkin      # → checkin.sh
+lifeos-weekly       # → weekly.sh
 ```
 
 ---

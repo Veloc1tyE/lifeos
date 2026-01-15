@@ -2,131 +2,116 @@
 
 A personal operating system for maintaining coherence across health, work, training, relationships, and long-term commitments.
 
-**Version:** 2.0.1
-**Architecture:** 4-document system (SPEC / OPS / TACTICS / STATE)
+**Version:** 2.0.2
 
-## One-Command Workflow
+## How It Works
 
-Each ritual is a single command. Data syncs automatically.
-
-| Time | Command | What it does |
-|------|---------|--------------|
-| **Morning** | `lifeos-morning` | Syncs Garmin + journal + calendar → runs morning calibration |
-| **Anytime** | `lifeos-checkin` | Syncs Garmin → quick status check |
-| **Evening** | `lifeos-evening` | Syncs Garmin + journal → runs shutdown protocol, logs training |
-| **Sunday** | `lifeos-weekly` | Syncs all data → full integrity review |
-
-That's it. One command per session.
-
-## Quick Reference
-
-```bash
-lifeos-morning      # Morning calibration (auto-syncs data)
-lifeos-checkin      # Quick status check (auto-syncs Garmin)
-lifeos-evening      # Evening shutdown (auto-syncs, logs training completion)
-lifeos-weekly       # Sunday integrity review (auto-syncs all sources)
-lifeos              # Ad-hoc session (no auto-sync, for deep work)
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                                                                 │
+│   BROWSER DASHBOARD          CLAUDE                             │
+│   (dashboard.html)     ←→    (lifeos-*)                         │
+│         │                         │                             │
+│         ▼                         ▼                             │
+│   ┌─────────────┐          ┌─────────────┐                      │
+│   │ Sync Server │──────────│ State Files │                      │
+│   │  (auto)     │          │   (JSON)    │                      │
+│   └─────────────┘          └─────────────┘                      │
+│         │                         │                             │
+│         └─────────┬───────────────┘                             │
+│                   ▼                                             │
+│            ┌─────────────┐                                      │
+│            │   Garmin    │                                      │
+│            │   DayOne    │                                      │
+│            │   Calendar  │                                      │
+│            │   Gmail     │                                      │
+│            └─────────────┘                                      │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-## Optional: Browser Dashboard
+**The browser dashboard is the main interface.** You edit priorities, track tasks, manage the week there. Changes sync automatically to `dashboard-live.json`.
 
-If you want live-sync while editing the browser dashboard:
+**Claude sessions read this data + external sources** (Garmin, journal, calendar) and help you assess, plan, close loops.
 
-```bash
-# Terminal 1: Keep running for browser auto-sync
-lifeos-sync
+## Commands
 
-# Then open dashboard.html in browser
-# Status pill shows "LIVE" when connected
-```
+| Command | When | What happens |
+|---------|------|--------------|
+| `lifeos-morning` | Start of day | Syncs all data → launches Claude for morning calibration |
+| `lifeos-checkin` | Anytime | Syncs Garmin → launches Claude for quick status |
+| `lifeos-evening` | End of day | Syncs Garmin/journal → launches Claude for shutdown |
+| `lifeos-weekly` | Sunday | Syncs everything → launches Claude for integrity review |
+| `lifeos` | Deep work | Launches Claude without prompt (state your topic) |
 
-The browser dashboard is optional. The trigger commands work without it.
+**One command per ritual.** Each command:
+1. Ensures the sync server is running
+2. Pulls fresh data from integrations
+3. Launches Claude with the appropriate session prompt
 
-## What Each Command Does
+## Dashboard Sync
 
-### `lifeos-morning`
-1. Syncs: Garmin, journal, calendar
-2. Reads: current-week.json, biometrics, journals
-3. Extracts: actionable items from journals
-4. Classifies: day state (GREEN/YELLOW/RED)
-5. Updates: current-week.json with today's plan
+The sync server runs automatically via launchd (`com.lifeos.sync`). It starts on login and stays running.
 
-### `lifeos-evening`
-1. Syncs: Garmin, journal
-2. Checks: training completion from Garmin activities
-3. Confirms: what was actually done today
-4. Updates: training dailyLog, minutes, session count
-5. Closes: loops, prepares tomorrow
+- **Check status:** `curl http://localhost:3456/health`
+- **Stop:** `launchctl stop com.lifeos.sync`
+- **Start:** `launchctl start com.lifeos.sync`
+- **Logs:** `lifeos/state/sync-server.log`
 
-### `lifeos-weekly`
-1. Syncs: all data sources
-2. Audits: training log, promises, pillars
-3. Detects: patterns, drift
-4. Resets: current-week.json for new week
-5. Archives: week to reviews folder
+The browser dashboard shows a status pill: **LIVE** (green) when connected, **OFFLINE** (yellow) when not.
 
-## Training Tracking
-
-Training is now tracked per-day in `current-week.json`:
-
-```json
-"p2_training": {
-  "dailyLog": [
-    {"day": "Mon", "date": "2026-01-12", "session": "90-min run", "minutes": 90, "confirmed": true},
-    {"day": "Tue", "date": "2026-01-13", "session": "Strength", "minutes": 45, "confirmed": true},
-    ...
-  ],
-  "minutesLogged": 135,
-  "sessionsCompleted": 2
-}
-```
-
-Evening shutdown pulls from Garmin and confirms with you before updating.
-
-## Architecture
+## File Structure
 
 ```
 dashboard/
-├── CLAUDE.md                   # Entry point (read first)
-├── dashboard.html              # Browser dashboard (optional)
+├── CLAUDE.md                   # Claude reads this first
+├── dashboard.html              # Browser dashboard (main interface)
 └── lifeos/
-    ├── LIFEOS_SPEC.md          # Constitution, invariants (rare changes)
-    ├── LIFEOS_OPS.md           # Commands, schemas (occasional changes)
-    ├── LIFEOS_TACTICS.md       # Playbooks, execution (frequent changes)
+    ├── LIFEOS_SPEC.md          # Rules, pillars, invariants
+    ├── LIFEOS_OPS.md           # Commands, integrations, schemas
+    ├── LIFEOS_TACTICS.md       # Playbooks, daily/weekly protocols
     ├── state/
-    │   ├── current-week.json   # Primary state file
+    │   ├── current-week.json   # Week state (canonical)
+    │   ├── dashboard-live.json # Browser dashboard sync
     │   └── session-log.md      # Session history
     ├── integrations/
-    │   ├── garmin/             # Garmin Connect sync
-    │   ├── dayone/             # DayOne journal sync
-    │   ├── calendar/           # Google Calendar sync
-    │   └── gmail/              # Gmail sync
+    │   ├── garmin/             # RHR, HRV, sleep, training
+    │   ├── dayone/             # Journal entries
+    │   ├── calendar/           # Google Calendar
+    │   └── gmail/              # Email load
     └── triggers/
-        ├── morning.sh          # Morning (auto-syncs)
-        ├── evening.sh          # Evening (auto-syncs)
-        ├── checkin.sh          # Check-in (auto-syncs)
-        └── weekly.sh           # Weekly (auto-syncs)
+        ├── morning.sh          # lifeos-morning
+        ├── evening.sh          # lifeos-evening
+        ├── checkin.sh          # lifeos-checkin
+        └── weekly.sh           # lifeos-weekly
 ```
 
 ## The 7 Pillars
 
-1. **Health & Nervous System** — FIRST-CLASS CONSTRAINT
+1. **Health & Nervous System** — First-class constraint
 2. **Training & Physical Capacity** — UTA 100km (May 2026)
-3. **Capital, Mission & Leverage** — $50M+ / $20M+ LOIs
+3. **Capital, Mission & Leverage** — $50M+ target
 4. **Learning & Study** — Arabic, Physics/Optics
 5. **Relationships & Social** — 5 core friendships
 6. **Output, Writing & Creation** — Weekly shipping
-7. **Review & Integrity** — SUPERORDINATE
+7. **Review & Integrity** — Superordinate (oversees all)
+
+Health overrides everything. Integrity ensures coherence.
 
 ## Key Principle
 
 > "My strength is not intensity — it's coherence."
 
-LifeOS protects long-term trajectory against drift. Health overrides everything. Structure beats willpower.
+LifeOS protects long-term trajectory against drift. Structure beats willpower.
+
+## Getting Started
+
+1. Open `dashboard.html` in your browser (the sync server auto-starts)
+2. Run `lifeos-morning` to start your first session
+3. Claude will read your state and guide you through calibration
 
 ## Where To Go Next
 
-- Start a session: `lifeos-morning` or `lifeos`
-- See rules: `lifeos/LIFEOS_SPEC.md`
-- When things go wrong: `lifeos/LIFEOS_TACTICS.md`
-- System evolution: `lifeos/CHANGELOG.md`
+- Daily protocols: `lifeos/LIFEOS_TACTICS.md`
+- System rules: `lifeos/LIFEOS_SPEC.md`
+- Integration details: `lifeos/LIFEOS_OPS.md`

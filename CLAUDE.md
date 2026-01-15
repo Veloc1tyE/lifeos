@@ -51,13 +51,14 @@ LifeOS is Billy's **systems governor** ensuring coherence between daily actions 
 ## Quick Commands
 
 ```bash
-lifeos-morning      # Morning calibration (auto-syncs all data)
-lifeos-evening      # Evening shutdown (auto-syncs, logs training)
-lifeos-checkin      # Quick status check (auto-syncs Garmin)
-lifeos-weekly       # Sunday integrity review (auto-syncs all)
-lifeos              # Ad-hoc session (no auto-sync, for deep work)
-lifeos-sync         # Optional: browser dashboard live sync
+lifeos-morning      # Morning calibration → syncs data, launches Claude
+lifeos-evening      # Evening shutdown → syncs data, launches Claude
+lifeos-checkin      # Quick status check → syncs Garmin, launches Claude
+lifeos-weekly       # Sunday integrity review → syncs all, launches Claude
+lifeos              # Ad-hoc session (deep work, manual topic)
 ```
+
+**Dashboard sync runs automatically** via launchd (`com.lifeos.sync`). The browser dashboard is the core operating system — edits sync to `dashboard-live.json` in real-time.
 
 ---
 
