@@ -49,6 +49,7 @@ lifeos-beeper       # Pull Beeper chats
 | Gmail inbox | `lifeos/integrations/gmail/data/current.json` |
 | Commitments | `lifeos/state/commitments.json` |
 | Session log | `lifeos/state/session-log.md` |
+| State queue | `lifeos/state/state-queue.json` |
 | Patterns | `lifeos/state/patterns.json` |
 | Social content | `~/age-of-wonders/private/content/` |
 
@@ -160,6 +161,34 @@ curl http://localhost:3456/health  # Check status
 
 When Billy opens a session, execute this loop:
 
+### 0. QUEUE CHECK (Manual Sessions Only)
+
+**Context:** Automated trigger sessions (morning/evening/checkin/weekly) cannot write files without user permission. They queue updates to `state-queue.json` instead. Manual sessions process this queue first.
+
+**Check:**
+```
+lifeos/state/state-queue.json
+```
+
+**If pending items exist:**
+1. Show queued updates to user
+2. Apply each update to its target file (with permission)
+3. Mark items as `processed: true` with timestamp
+4. Clear processed items from queue
+
+**Queue entry format:**
+```json
+{
+  "id": "unique-id",
+  "timestamp": "ISO timestamp",
+  "sourceSession": "morning|evening|checkin|weekly",
+  "target": "current-week.json|STATE.md|inbox.md|etc",
+  "operation": "update_handoff|add_task|add_open_loop|update_pillar|etc",
+  "data": { ... },
+  "processed": false
+}
+```
+
 ### 1. INGEST
 
 Read these files in order:
@@ -238,7 +267,29 @@ ABORT IF: [safety conditions]
 
 ### 6. SESSION END (Mandatory)
 
-**Every session must update TWO files before closing:**
+**Session type determines behavior:**
+
+**Manual sessions** — Update files directly:
+
+**Automated sessions (trigger commands)** — Print queue data to stdout:
+- Output proposed state changes between `<<<QUEUE_START>>>` and `<<<QUEUE_END>>>` markers
+- Include: handoff updates, journal extractions, pillar assessments, new tasks
+- Trigger script captures output and appends to `state-queue.json`
+- Queue will be processed in next manual session
+
+**Queue output format (at end of session, after human summary):**
+```
+SESSION COMPLETE.
+
+<<<QUEUE_START>>>
+[{"id":"morning-2026-01-15-001","timestamp":"...","sourceSession":"morning","target":"current-week.json","operation":"add_task","data":{...}}]
+<<<QUEUE_END>>>
+```
+Keep JSON on single line for minimal noise. Human-readable output comes first.
+
+---
+
+**Manual sessions must update TWO files before closing:**
 
 **A) Session Log** (`lifeos/state/session-log.md`):
 ```markdown
@@ -599,11 +650,13 @@ Location: `lifeos/triggers/`
 | `evening.sh` | Syncs Garmin/journal → launches Claude with shutdown prompt |
 | `checkin.sh` | Syncs Garmin → launches Claude with quick checkin prompt |
 | `weekly.sh` | Syncs all data → launches Claude with integrity review prompt |
+| `queue-processor.sh` | Extracts queue data from Claude output and appends to state-queue.json |
 
 **Design:** Each script:
 1. Ensures dashboard sync server is running
 2. Syncs relevant data sources
-3. Launches Claude with the appropriate session prompt
+3. Launches Claude and captures output via `tee`
+4. Runs `queue-processor.sh` to extract and queue any state updates
 
 **Commands:**
 ```bash

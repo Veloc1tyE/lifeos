@@ -15,5 +15,11 @@ fi
 echo "Syncing Garmin..."
 python3 lifeos/integrations/garmin/sync.py 2>/dev/null
 
-# Launch Claude with quick checkin prompt
-exec claude -p "Quick check-in. Show current status and any signals that need attention."
+# Create temp file for output capture
+TEMP_OUTPUT=$(mktemp)
+
+# Launch Claude and capture output (tee shows output while capturing)
+claude -p "Quick check-in. Show current status and any signals that need attention. Output any state updates between <<<QUEUE_START>>> and <<<QUEUE_END>>> markers as JSON array." 2>&1 | tee "$TEMP_OUTPUT"
+
+# Process any queued data
+./lifeos/triggers/queue-processor.sh "$TEMP_OUTPUT"

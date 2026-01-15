@@ -1,0 +1,5 @@
+{
+  "description": "Queue for state updates from automated sessions. Processed during manual sessions.",
+  "queue": [],
+  "lastProcessed": null
+}

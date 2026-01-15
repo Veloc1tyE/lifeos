@@ -45,6 +45,74 @@ LifeOS is Billy's **systems governor** ensuring coherence between daily actions 
 | **dashboard-live.json** | Browser dashboard data | `lifeos/state/dashboard-live.json` |
 | **artifacts/** | Temp working files for deep work sessions | `lifeos/artifacts/` |
 | **session-log.md** | Session history | `lifeos/state/session-log.md` |
+| **state-queue.json** | Pending state updates from automated sessions | `lifeos/state/state-queue.json` |
+
+---
+
+## State Queue (Automated → Manual Handoff)
+
+During automated trigger sessions (`lifeos-morning`, etc.), Claude cannot modify files without terminal permission. State updates are queued for processing in the next manual session.
+
+### Queue Workflow
+
+**Automated sessions (trigger commands):**
+1. Read all data sources, extract journal items, assess state
+2. Instead of writing to state files, **print** queue data to stdout between markers
+3. The trigger script captures this output and appends to `state-queue.json`
+
+**Output format for automated sessions:**
+
+Complete the full human-readable session output first, then add queue data at the very end as a compact footer:
+
+```
+[... normal session output: status, signals, summary ...]
+
+SESSION COMPLETE.
+
+<<<QUEUE_START>>>
+[{"id":"morning-2026-01-15-001","timestamp":"2026-01-15T06:30:00+04:00","sourceSession":"morning","target":"current-week.json","operation":"add_open_loop","data":{"item":"Follow up with X"}}]
+<<<QUEUE_END>>>
+```
+
+**Rules:**
+- Queue data comes LAST, after human-readable summary
+- JSON array on a single line (compact, minimal noise)
+- Markers on their own lines
+
+**Manual sessions (`lifeos` ad-hoc):**
+1. First step: Check `state-queue.json` for pending items
+2. Process each queued update (with user permission)
+3. Mark items as processed after successful write
+4. Clear processed items from queue
+
+### Queue Entry Format
+
+```json
+{
+  "id": "unique-id",
+  "timestamp": "ISO timestamp",
+  "sourceSession": "morning|evening|checkin|weekly",
+  "target": "current-week.json|STATE.md|inbox.md|etc",
+  "operation": "update_handoff|add_task|add_open_loop|update_pillar|etc",
+  "data": { ... },
+  "processed": false
+}
+```
+
+### What Gets Queued
+
+- Journal extractions (tasks, contacts, open loops)
+- Pillar status updates
+- Handoff context and open loops
+- New backlog items
+- Training log confirmations
+- Biometric assessments
+
+### What Executes Immediately
+
+- Data reads (Garmin, journals, calendar, etc.)
+- Status reports to terminal
+- Coherence assessments
 
 ---
 
@@ -125,13 +193,16 @@ Weekly Review must produce: (1) Kept promises, (2) Broken promises with disposit
 
 Then execute:
 
+0. **QUEUE CHECK (manual sessions only):** Check `state-queue.json` for pending items from automated sessions. If items exist, process them first (apply updates to target files with user permission, mark as processed).
 1. **INGEST:** current-week.json, dashboard-live.json, Garmin, journals
 2. **EXTRACT:** Surface actionable items from journals (tasks, contacts, open loops)
 3. **ASSESS:** Trajectory, friction score, bottleneck
 4. **REPORT:** Status, signals, bottleneck, correction
 5. **ACTION PACKET:** If needed
 6. **CLOSE LOOPS:** Committed vs completed
-7. **SESSION END:** Update `session-log.md` + `current-week.json` handoff (mandatory)
+7. **SESSION END:**
+   - **Manual sessions:** Update `session-log.md` + `current-week.json` handoff (mandatory)
+   - **Automated sessions:** Queue all state updates to `state-queue.json` instead of writing directly
 
 ### Evening Protocol (19:00-20:00)
 

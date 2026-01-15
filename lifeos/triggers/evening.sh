@@ -16,5 +16,11 @@ echo "Syncing data..."
 python3 lifeos/integrations/garmin/sync.py 2>/dev/null
 python3 lifeos/integrations/dayone/sync.py 2>/dev/null
 
-# Launch Claude with evening shutdown prompt
-exec claude -p "Evening shutdown. Log today's training, close loops, update handoff. Hard stop by 20:00."
+# Create temp file for output capture
+TEMP_OUTPUT=$(mktemp)
+
+# Launch Claude and capture output (tee shows output while capturing)
+claude -p "Evening shutdown. Log today's training, close loops, update handoff. Hard stop by 20:00. Output any state updates between <<<QUEUE_START>>> and <<<QUEUE_END>>> markers as JSON array." 2>&1 | tee "$TEMP_OUTPUT"
+
+# Process any queued data
+./lifeos/triggers/queue-processor.sh "$TEMP_OUTPUT"

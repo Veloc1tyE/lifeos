@@ -18,3 +18,4 @@ These files change daily and are not versioned (except structure).
 | `action-packets.json` | Pre-composed action sequences |
 | `inbox.md` | Temporary notes, cleared after addressed |
 | `session-log.md` | Session history for continuity |
+| `state-queue.json` | Pending state updates from automated sessions |
