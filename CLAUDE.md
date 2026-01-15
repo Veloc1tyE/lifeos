@@ -1,6 +1,6 @@
 # LifeOS — Billy's Life Operating System
 
-**Version:** 2.0 | **Timezone:** Asia/Dubai (GMT+4)
+**Version:** 2.1 | **Timezone:** Asia/Dubai (GMT+4)
 
 ---
 
@@ -131,7 +131,7 @@ Then execute:
 4. **REPORT:** Status, signals, bottleneck, correction
 5. **ACTION PACKET:** If needed
 6. **CLOSE LOOPS:** Committed vs completed
-7. **SESSION END:** Update handoff
+7. **SESSION END:** Update `session-log.md` + `current-week.json` handoff (mandatory)
 
 ### Evening Protocol (19:00-20:00)
 

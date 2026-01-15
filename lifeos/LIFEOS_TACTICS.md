@@ -1,7 +1,7 @@
 # LifeOS Tactical Manual
 
-**Version:** 2.0
-**Last Updated:** 2026-01-14
+**Version:** 2.1
+**Last Updated:** 2026-01-15
 **Document Type:** Tactics (changes often)
 
 This document contains **what to actually do** in real situations: playbooks, checklists, decision trees, and situational responses. It complements LIFEOS_SPEC.md (principles) and LIFEOS_OPS.md (infrastructure).
@@ -57,6 +57,68 @@ Tactics are tagged by usage frequency:
 | Content bank depleted | Pillar 6 → Social Metrics Check, extraction workflow |
 | Sleep collapse | Pillar 1 → Daily OS Section D, Medication Context |
 | Pre-mortem triggered | SPEC → Pre-Mortem Trigger section |
+
+---
+
+## Deep Work Sessions — Tactical
+
+### When to Use
+
+Deep work sessions are for substantial, focused work on a single pillar topic. Use when:
+- Task requires 1-2+ hours of focused execution
+- External data needs processing (CRM, spreadsheets, exports)
+- Complex analysis or planning required
+- Multiple sub-tasks need orchestration
+
+### Session Initiation
+
+**Command:** "Deep work session on [topic]"
+
+**Response pattern:**
+1. Declare focus and duration
+2. Set distraction protocol
+3. Create todo list for session
+4. Import artifacts if needed
+5. Execute
+
+### Artifacts Workflow
+
+**Location:** `lifeos/artifacts/`
+
+**Pattern:** Import → Work → Export → Delete
+
+| Phase | Action |
+|-------|--------|
+| Import | Paste external data into `artifacts/[topic]-[date].md` |
+| Work | Process, triage, analyze, generate actions |
+| Export | Push changes to external systems (CRM, sheets, etc.) |
+| Delete | Remove artifact file when complete |
+
+**Rules:**
+- One artifact per session topic
+- Delete artifacts at session end
+- Never store credentials in artifacts
+- Git-ignored by default
+
+### Focus Protection
+
+**Distraction protocol:** If something surfaces for another pillar during deep work:
+1. Note it briefly in handoff.openLoops
+2. Return immediately to session focus
+3. Do NOT context-switch
+
+**Exception:** P1 Health signals override all deep work. If Day State degrades to RED, pause session.
+
+### Session Closure
+
+1. Export all changes to external systems
+2. Confirm exports applied
+3. Delete artifact files
+4. Update `today.deepWork.completed` in current-week.json
+5. **Update session-log.md** (append entry)
+6. **Update handoff in current-week.json** (see OPS.md § Session End)
+
+**Rule:** Every session — morning, evening, checkin, weekly, ad-hoc — must update session-log.md and current-week.json handoff before closing. No exceptions.
 
 ---
 
@@ -557,18 +619,90 @@ Includes: Brief message, voice note, reply beyond logistics, moment of genuine p
 
 ## Pillar 6 Extension: Social Distribution — Full Details
 
-### Core Principle: Value-First Distribution
+### Core Principle: Engagement-First Distribution
 
 **Links get derated.** Algorithms penalize posts that drive users off-platform.
 
 **Solution:** Build authority through insight. Funnel to newsletter.
 
+**Engagement Priority:** Quality over quantity. One compelling post beats three forgettable ones.
+
 | Type | Frequency | Purpose |
 |------|-----------|---------|
-| **Value tweets** | 1-2/day | Standalone insight. No links. Pure value. |
+| **Value tweets** | 1-2/day | Expanded insight with depth. Leverage X Premium length. Pair with striking images. |
 | **Quality replies** | 2-3/day | Engage in adjacent conversations. Add insight. |
 | **Threads** | 1/week | Deeper exploration. CTA at end only. |
 | **Link posts** | On publish only | Essay launches. Value first, link in reply. |
+
+### Writing Style (Canonical)
+
+**Language:** Australian English (centre, polarised, analysing, colour)
+
+**Voice principles:**
+- Short sentences. One thought per line.
+- Declarative structure. Subject-verb-object.
+- Show, don't tell. No "What strikes me most..." or "I think..." — just state it.
+- Build to a punchline. Context first, insight at the end.
+- Concrete facts and numbers. Not vague generalisations.
+- No corporate jargon or LinkedIn-speak.
+- Use "we" to include the reader.
+
+**Anti-patterns (AI tells to avoid):**
+- "We didn't do X. We did Y." / "Not X. Y." — classic AI correction structure
+- "The result:" / "Here's the thing:" — reveal patterns, just state it directly
+- Em dashes (—) — overused by AI, use full stops or commas instead
+- "What strikes me most:" — telling not showing
+- Excessive adjectives or superlatives
+- Vague claims without specifics
+- Repeating themes from recent posts
+- Monotonous sentence length — vary rhythm, mix short punchy with longer flowing
+- Staccato lists of short sentences — let some ideas breathe and connect
+
+**Rhythm principles:**
+- Vary sentence length naturally (3 words to 30 words)
+- Some sentences can flow into each other with commas
+- Short punches land harder after longer setups
+- Read it aloud — if it sounds robotic, vary the structure
+
+**Reference essays for style:**
+- `perceptual-abundance.mdx`
+- `create-an-age-of-wonders.mdx`
+
+### Engagement Amplifiers
+
+**Images:** Pair posts with striking visuals when content supports it. Sources:
+- Essay assets: `/Users/billy_j/age-of-wonders/public/images/`
+- Scientific imagery (NASA, ESA, public domain)
+
+**Available images:**
+- `m87-black-hole-optimized.jpg` — First black hole photograph
+- `sagittarius-a-optimized.jpg` — Sag A* with polarisation
+- `ligo-airview-optimized.jpg` — LIGO aerial view
+- `jwst-deep-field-optimized.jpg` — Webb deep field
+- `earthrise-optimized.jpg` — Apollo 8 Earthrise
+- `gaia-milky-way-optimized.jpg` — Gaia star map
+
+**Length:** X Premium removes character limits. Expand one-liners into fuller insights:
+- Add context or reframe
+- Build to the punchline
+- Let the idea breathe
+
+**Freshness:** Avoid repeating themes recently posted. Check last 5 posts before selecting.
+
+### Timing & Scheduling
+
+**Audience:** Primarily Australia, some US
+
+**Optimal window:** 21:00-23:00 UTC
+- Australia: 8-10am AEDT (morning)
+- US East: 4-6pm EST (evening)
+- US West: 1-3pm PST (afternoon)
+
+**Rules:**
+- Always schedule, never publish immediately
+- Never publish multiple posts at once — looks unnatural
+- Use `next-free-slot` or specific datetime
+- Space posts for organic cadence
 
 ### Content Infrastructure
 
@@ -599,22 +733,26 @@ private/
 2. **SELECT** — Choose 1-2 unused items (`[ ]`) appropriate for the day
    - Vary sources (don't pull from same essay consecutively)
    - Mix stats, one-liners, and provocations
+   - Prioritize items that pair well with available images
+   - Check last 5 published posts for theme freshness
 
-3. **DRAFT** — Prepare posts and present for approval:
+3. **DRAFT** — Expand and present for approval:
+   - **Expand one-liners** into fuller insights (leverage X Premium length)
+   - **Pair with images** from essay assets when available
+   - **Build to the punchline** — add context, let the idea breathe
+
    ```
    SOCIAL DRAFT FOR APPROVAL:
 
    POST 1 (X):
-   [content]
+   [expanded content — not raw one-liner]
+   Image: [filename or "none"]
    Source: [essay name, line reference]
 
    POST 2 (X): [if applicable]
-   [content]
+   [expanded content]
+   Image: [filename or "none"]
    Source: [essay name, line reference]
-
-   REPLY TARGETS:
-   - @[handle]: [recent post topic] → [suggested angle]
-   - @[handle]: [recent post topic] → [suggested angle]
 
    APPROVE / EDIT / SKIP?
    ```

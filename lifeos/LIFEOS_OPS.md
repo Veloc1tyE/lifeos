@@ -1,7 +1,7 @@
 # LifeOS Operations Manual
 
-**Version:** 2.0
-**Last Updated:** 2026-01-14
+**Version:** 2.1
+**Last Updated:** 2026-01-15
 **Document Type:** Operations (changes as infrastructure evolves)
 
 This document contains operational commands, workflows, integrations, and data flow. It should be updated whenever infrastructure changes.
@@ -236,15 +236,35 @@ ABORT IF: [safety conditions]
 - What was completed?
 - What slipped and why?
 
-### 6. SESSION END
+### 6. SESSION END (Mandatory)
 
-Update `lifeos/state/current-week.json`:
-- `handoff.lastSession`: timestamp
+**Every session must update TWO files before closing:**
+
+**A) Session Log** (`lifeos/state/session-log.md`):
+```markdown
+## YYYY-MM-DD | Session XXX | [TYPE] — [TITLE]
+
+**Trigger:** [lifeos-morning | lifeos-evening | lifeos-checkin | lifeos-weekly | lifeos (ad-hoc)]
+**Time:** ~HH:MM GST
+
+### [Context/Issue/Actions as appropriate]
+
+### Handoff
+[One-line summary of session outcome]
+```
+
+**B) Current Week Handoff** (`lifeos/state/current-week.json`):
+- `lastUpdated`: ISO timestamp
+- `lastSessionId`: increment by 1
+- `handoff.lastSession`: "YYYY-MM-DDTHH:MM — [TYPE]"
+- `handoff.sessionSummary`: array of what was done
 - `handoff.openLoops`: any unfinished items
 - `handoff.nextSessionContext`: what next session needs
 - `handoff.blockers`: anything preventing progress
 - `today.critical3`: updated status
 - `today.backlog`: remaining items
+
+**Rule:** No session closes without both updates. This is how continuity works.
 
 ---
 
