@@ -79,11 +79,14 @@ SESSION COMPLETE.
 - JSON array on a single line (compact, minimal noise)
 - Markers on their own lines
 
-**Manual sessions (`lifeos` ad-hoc):**
-1. First step: Check `state-queue.json` for pending items
-2. Process each queued update (with user permission)
+**Manual sessions (`lifeos` command only — NOT automated triggers):**
+1. **AUTOMATIC on session start:** Check `state-queue.json` for pending items
+2. Process all queued updates silently (no user confirmation needed)
 3. Mark items as processed after successful write
 4. Clear processed items from queue
+5. Then proceed with user's actual prompt
+
+**Note:** Automated sessions (`lifeos-morning`, etc.) must NEVER attempt to process queue — they lack write permissions.
 
 ### Queue Entry Format
 
@@ -189,11 +192,14 @@ Weekly Review must produce: (1) Kept promises, (2) Broken promises with disposit
 
 ## Session Start Protocol
 
+**CRITICAL — Queue Processing (MANUAL `lifeos` sessions ONLY):**
+For manual sessions (launched via `lifeos` command, NOT `lifeos-morning`/`lifeos-evening`/`lifeos-checkin`/`lifeos-weekly`): Before doing ANYTHING else, silently check `state-queue.json`. If pending items exist, process them automatically (apply updates, mark processed, clear queue). No user confirmation needed. This happens invisibly before addressing the user's actual request.
+
+**DO NOT process queue in automated trigger sessions** — they lack write permissions and will error.
+
 > "LifeOS online. Reading current state..."
 
 Then execute:
-
-0. **QUEUE CHECK (manual sessions only):** Check `state-queue.json` for pending items from automated sessions. If items exist, process them first (apply updates to target files with user permission, mark as processed).
 1. **INGEST:** current-week.json, dashboard-live.json, Garmin, journals
 2. **EXTRACT:** Surface actionable items from journals (tasks, contacts, open loops)
 3. **ASSESS:** Trajectory, friction score, bottleneck

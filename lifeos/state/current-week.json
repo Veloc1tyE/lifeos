@@ -2,20 +2,20 @@
   "week": 3,
   "weekStart": "2026-01-12",
   "timezone": "Asia/Dubai",
-  "lastUpdated": "2026-01-15T19:30:00+04:00",
-  "lastSessionId": "009",
+  "lastUpdated": "2026-01-15T15:00:00+04:00",
+  "lastSessionId": "012",
 
   "pillarStatus": {
     "p1_health": {
-      "status": "YELLOW",
+      "status": "GREEN",
       "signals": [
-        "Training Readiness 33 (LOW)",
-        "Body Battery dipped to 12 today",
-        "HRV 66 vs 70 baseline (suppressed)",
-        "Stress spike to 99 during day",
-        "Recovery not keeping pace with load"
+        "RHR 48 (7-day avg 50) — excellent",
+        "HRV 79 vs 70 baseline — above baseline",
+        "Sleep 8.23h with good architecture",
+        "Body Battery 67 — recovered from 12",
+        "Training Readiness 59 (MODERATE) — up from 33"
       ],
-      "lastAssessed": "2026-01-14"
+      "lastAssessed": "2026-01-15"
     },
     "p2_training": {
       "status": "BUILDING",
@@ -88,8 +88,8 @@
   "today": {
     "date": "2026-01-15",
     "dayState": "GREEN",
-    "frictionScore": 2,
-    "frictionSignals": ["admin backlog", "calorie deficit signal"],
+    "frictionScore": 1,
+    "frictionSignals": ["admin backlog"],
     "training": {
       "planned": "Recovery day — no 90-min session",
       "actual": "Rest + calorie resupply",
@@ -117,10 +117,10 @@
   "weeklyBacklog": [],
 
   "biometrics": {
-    "rhr": [null, 63, 53, null, null, null, null],
-    "hrv": [null, 65, 66, null, null, null, null],
-    "sleepHours": [null, 8.49, 8.49, null, null, null, null],
-    "bodyBattery": [null, 64, 64, null, null, null, null]
+    "rhr": [null, 63, 53, null, 48, null, null],
+    "hrv": [null, 65, 66, null, 79, null, null],
+    "sleepHours": [null, 8.49, 8.49, null, 8.23, null, null],
+    "bodyBattery": [null, 64, 64, null, 67, null, null]
   },
 
   "enduranceScoreHistory": {
@@ -136,13 +136,12 @@
   },
 
   "handoff": {
-    "lastSession": "2026-01-15 — Session 009 QUICK UPDATE",
+    "lastSession": "2026-01-15T15:00 — AD-HOC (Queue Auto-Processing)",
     "sessionSummary": [
-      "Recovery day taken — no 90-min session, resupply calories",
-      "Gym key retrieved from TRAIN",
-      "WEEK PLAN: Thu (elliptical + strength + VO2 4x30s/90s), Sat (90-min run), Sun (rest)",
-      "PROJECTED: ~600 intensity minutes (step up from last week's 468)",
-      "TRAINING LOAD: Still in optimal range. 'Above targets' is expected — Garmin 996 auto-adjusts optimal range upward"
+      "Queue mechanism updated — auto-processing on manual session start",
+      "Scoped to `lifeos` only — automated triggers explicitly excluded",
+      "Processed 6 queued items from morning + checkin sessions",
+      "Queue cleared, ready for next automated session"
     ],
     "openLoops": [
       "Jeff Curd — lunch confirmed 1pm tomorrow Masdar City Centre",
@@ -173,7 +172,8 @@
       "gmailStarred": "lifeos/integrations/gmail/sync.py — now pulls starred emails",
       "beeper": "lifeos/integrations/beeper/sync.py — WhatsApp/LinkedIn chat access",
       "calendarWrite": "lifeos/integrations/calendar/sync.py — can create events",
-      "beeperMCP": "Added to Claude Code MCP servers"
+      "beeperMCP": "Added to Claude Code MCP servers",
+      "stateQueue": "lifeos/state/state-queue.json — automated session state handoff"
     }
   }
 }
