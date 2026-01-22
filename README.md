@@ -1,8 +1,22 @@
 # LifeOS
 
-A personal operating system for maintaining coherence across health, work, training, relationships, and long-term commitments.
+A Claude-powered personal operating system that acts as a systems governor — maintaining coherence across health, training, work, relationships, and long-term commitments.
 
-**Version:** 2.0.2
+**Version:** 2.1
+
+## Why LifeOS
+
+I used to manage my health, training, work priorities, relationships, and output through scattered tools — notes apps, spreadsheets, calendar, manual journaling. It worked, but coherence was hard. Things slipped.
+
+LifeOS replaces that with an AI-native system that:
+- **Ingests data automatically** — Garmin biometrics, calendar, journal entries, social metrics
+- **Runs daily calibrations** — morning and evening sessions that assess state, surface drift, and recommend corrections
+- **Tracks pillars** — health, training, learning, relationships, output, integrity — with thresholds that trigger alerts
+- **Maintains handoff context** — every session logs state so the next session picks up where I left off
+
+The friction I feel when it's *not* running is the clearest signal it's working. It's become infrastructure, not a tool.
+
+> *"My strength is not intensity — it's coherence."*
 
 ## How It Works
 
@@ -49,6 +63,15 @@ A personal operating system for maintaining coherence across health, work, train
 2. Pulls fresh data from integrations
 3. Launches Claude with the appropriate session prompt
 
+## State Queue (Automated Handoff)
+
+Automated trigger sessions (`lifeos-morning`, etc.) run without write permissions. Instead of modifying state files directly, they queue updates to `state-queue.json`. The next manual session (`lifeos`) processes the queue automatically.
+
+This enables:
+- **Reliable handoffs** between automated and manual sessions
+- **No lost context** from morning calibrations or evening shutdowns
+- **Clean separation** between read-only assessments and stateful writes
+
 ## Dashboard Sync
 
 The sync server runs automatically via launchd (`com.lifeos.sync`). It starts on login and stays running.
@@ -73,12 +96,15 @@ dashboard/
     ├── state/
     │   ├── current-week.json   # Week state (canonical)
     │   ├── dashboard-live.json # Browser dashboard sync
+    │   ├── state-queue.json    # Automated session handoff queue
     │   └── session-log.md      # Session history
     ├── integrations/
     │   ├── garmin/             # RHR, HRV, sleep, training
     │   ├── dayone/             # Journal entries
     │   ├── calendar/           # Google Calendar
-    │   └── gmail/              # Email load
+    │   ├── gmail/              # Email load
+    │   └── beeper/             # WhatsApp/messaging
+    ├── artifacts/              # Temp working files (git-ignored)
     └── triggers/
         ├── morning.sh          # lifeos-morning
         ├── evening.sh          # lifeos-evening
@@ -88,19 +114,27 @@ dashboard/
 
 ## The 7 Pillars
 
-1. **Health & Nervous System** — First-class constraint
+1. **Health & Nervous System** — First-class constraint. Overrides all others.
 2. **Training & Physical Capacity** — UTA 100km (May 2026)
-3. **Capital, Mission & Leverage** — $50M+ target
+3. **Life Building & Belonging** — Putting down roots, community, infrastructure
 4. **Learning & Study** — Arabic, Physics/Optics
-5. **Relationships & Social** — 5 core friendships
+5. **Relationships & Social** — 5 core friendships maintained with rhythm
 6. **Output, Writing & Creation** — Weekly shipping
 7. **Review & Integrity** — Superordinate (oversees all)
+
+```
+P7 (Integrity) — oversees all
+    ↓
+P1 (Health) — first-class constraint
+    ↓
+P2 (Training) — subordinate to P1
+    ↓
+P3-P6 — subordinate to P1 & P2
+```
 
 Health overrides everything. Integrity ensures coherence.
 
 ## Key Principle
-
-> "My strength is not intensity — it's coherence."
 
 LifeOS protects long-term trajectory against drift. Structure beats willpower.
 
