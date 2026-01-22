@@ -203,7 +203,7 @@ def get_health_data(client, date):
                 data['training_readiness'] = {
                     'score': r.get('score'),
                     'level': r.get('level'),
-                    'recovery_time_hours': r.get('recoveryTime'),
+                    'recovery_time_minutes': r.get('recoveryTime'),
                     'sleep_score': r.get('sleepScore'),
                     'sleep_score_feedback': r.get('sleepScoreFactorFeedback'),
                     'hrv_weekly_avg': r.get('hrvWeeklyAverage'),
@@ -393,7 +393,9 @@ def print_summary(data):
         print(f"\n  TRAINING READINESS")
         print(f"    Score: {tr.get('score')} ({tr.get('level')})")
         print(f"    Sleep: {tr.get('sleep_score')} ({tr.get('sleep_score_feedback')}) | HRV: {tr.get('hrv_feedback')}")
-        print(f"    Recovery: {tr.get('recovery_time_hours')}h | Acute Load: {tr.get('acute_load')}")
+        recovery_mins = tr.get('recovery_time_minutes')
+        recovery_str = f"{recovery_mins // 60}h {recovery_mins % 60}m" if recovery_mins else "N/A"
+        print(f"    Recovery: {recovery_str} | Acute Load: {tr.get('acute_load')}")
 
     # Race Predictions
     if 'race_predictions' in data and data['race_predictions'].get('5k_seconds'):
